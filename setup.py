@@ -11,7 +11,7 @@ setup(
         "pandas",
         "tqdm",
         "requests",
-        "cogent3>=2024.4",
+        "cogent3>=2024.2.5a1",
         "pyfaidx>=0.8",
         "biopython>=1.83"
     ],
