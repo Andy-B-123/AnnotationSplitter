@@ -1,16 +1,20 @@
 from setuptools import setup, find_packages
 
-# Read the requirements from the requirements.txt file
-with open('requirements.txt') as f:
-    required = f.read().splitlines()
-
 setup(
     name="AnnotationSplitter",
     version="0.0.1",
     packages=find_packages(where='src'),
     package_dir={'': 'src'},
     include_package_data=True,
-    install_requires=required,
+    install_requires=[
+        "icecream>=2.2",
+        "pandas",
+        "tqdm",
+        "requests",
+        "cogent3>=2024.4",
+        "pyfaidx>=0.8",
+        "biopython>=1.83"
+    ],
     entry_points={
         'console_scripts': [
             'AnnotationSplitter=main:main',
