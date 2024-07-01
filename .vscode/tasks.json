@@ -1,0 +1,12 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run the script with example data",
+            "type": "shell",
+            "command": "python main.py --gff_path U:/Chap4/Sf9_denovo_transcriptome/references/GCF_023101765.2_AGI-APGP_CSIRO_Sfru_2.0_genomic.gff --fasta_path gff_path"
+        }
+    ]
+}
