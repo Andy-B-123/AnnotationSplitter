@@ -43,6 +43,7 @@ output_fasta_file = 'protein_sequences.fasta'
 write_protein_sequences_to_fasta(CDS_df_with_proteins[CDS_df_with_proteins['is_partial'] != True], output_fasta_file)
 print(f"Protein sequences written to {output_fasta_file}")
 
+print("Done")
 
 """ if __name__ == "__main__":
     # Set these variables for direct assignment
