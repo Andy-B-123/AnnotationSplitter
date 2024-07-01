@@ -1,4 +1,4 @@
-icecream>=2.2
+icecream>=2.1
 pandas
 tqdm
 requests
