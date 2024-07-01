@@ -7,7 +7,7 @@ setup(
     package_dir={'': 'src'},
     include_package_data=True,
     install_requires=[
-        "icecream>=2.2",
+        "icecream>=2.1",
         "pandas",
         "tqdm",
         "requests",
