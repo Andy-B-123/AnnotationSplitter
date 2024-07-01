@@ -1,20 +1,16 @@
-# setup.py
-
 from setuptools import setup, find_packages
+
+# Read the requirements from the requirements.txt file
+with open('requirements.txt') as f:
+    required = f.read().splitlines()
 
 setup(
     name="AnnotationSplitter",
-    version="0.1.0",
+    version="0.0.1",
     packages=find_packages(where='src'),
     package_dir={'': 'src'},
     include_package_data=True,
-    install_requires=[
-        "biopython>1",
-        "cogent3>=2024.4",
-        "pandas>1",
-        "matplotlib>3",
-        "seaborn>0.10"
-    ],
+    install_requires=required,
     entry_points={
         'console_scripts': [
             'AnnotationSplitter=main:main',

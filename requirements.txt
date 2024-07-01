@@ -1,6 +1,7 @@
-biopython>1
+icecream>=2.2
+pandas
+tqdm
+requests
 cogent3>=2024.4
-pandas>1
-matplotlib>3
-seaborn>0.10
-unittest2>1.0.0
+pyfaidx>=0.8
+biopython>=1.83
