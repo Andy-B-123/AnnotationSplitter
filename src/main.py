@@ -1,9 +1,9 @@
 import argparse
 from icecream import ic
 import pandas as pd
-from src.AnnotationParsing import load_or_create_gff_db, extract_gene_id, extract_dna_sequences, translate_to_protein, map_nucleotides_to_amino_acids
-from src.MMSeqs_runner import check_mmseqs_existence, check_database, run_mmseqs, write_protein_sequences_to_fasta
-from src.ProteinHitsToGenomeCoordinates import process_mmseqs_to_genome
+from AnnotationParsing import load_or_create_gff_db, write_protein_sequences_to_fasta, extract_gene_id, extract_dna_sequences, translate_to_protein, map_nucleotides_to_amino_acids
+from MMSeqs_runner import check_mmseqs_existence, check_database, run_mmseqs
+from ProteinHitsToGenomeCoordinates import process_mmseqs_to_genome
 
 def main(fasta_path, gff_path, output_folder, database_path, mmseqs_path, threads):
     gff_db = load_or_create_gff_db(gff_path)
