@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="AnnotationSplitter",
-    version="0.0.2",
+    version="0.0.4",
     packages=find_packages(where='src'),
     package_dir={'': 'src'},
     include_package_data=True,
@@ -11,7 +11,7 @@ setup(
         "pandas",
         "tqdm",
         "requests",
-        "cogent3>=2024.4",
+        "cogent3>=2024.2.5a1",
         "pyfaidx>=0.8",
         "biopython>=1.83"
     ],
