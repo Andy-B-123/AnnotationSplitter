@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="AnnotationSplitter",
-    version="0.0.7",
+    version="0.0.8",
     packages=find_packages(where='src'),
     package_dir={'': 'src'},
     include_package_data=True,
@@ -13,11 +13,12 @@ setup(
         "requests",
         "cogent3>=2024.2.5a1",
         "pyfaidx>=0.8",
-        "biopython>=1.83"
+        "biopython>=1.83",
+        "matplotlib"  # Add this if you are using matplotlib
     ],
     entry_points={
         'console_scripts': [
-            'AnnotationSplitter=src.main:main',
+            'AnnotationSplitter=main:main',
         ],
     },
     author="Andreas Bachler",
