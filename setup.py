@@ -17,7 +17,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'AnnotationSplitter=main:main',
+            'AnnotationSplitter=src.main:main',
         ],
     },
     author="Andreas Bachler",
