@@ -63,6 +63,7 @@ def run_pipeline(fasta_path, gff_path, output_folder, database_path, mmseqs_path
     print("Finished running MMSeqs.")
 
     ### Map hits to genome, make a nice bed file for viewing
+    print("Processing the mmseqs output to a nice .bed file relative to the genome...")
     mmseqs_output_file = f'{output_folder}/filtered_proteins.mmseqs.out'
     process_mmseqs_to_genome(mmseqs_output_file, CDS_df_with_proteins, output_folder)
 

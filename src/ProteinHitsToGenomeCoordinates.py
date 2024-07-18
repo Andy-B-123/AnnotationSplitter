@@ -72,7 +72,7 @@ def process_mmseqs_to_genome(mmseqs_output_file,annotation_df,output_directory):
     columns_to_write = ['seqid', 'genome_start', 'genome_end', 'unique_id', 'tcov' ,'strand','thickStart',"thickEnd","itemRgb"]
 
     # Write the specified columns to a BED file
-    output_file = os.path.join(output_directory,"output.bed")
+    output_file = os.path.join(output_directory,"filtered_proteins.mmseqs.relativeToGenome.bed")
 
     mmseqs_dataframe_meta_sort.to_csv(output_file, sep='\t', columns=columns_to_write, header=False, index=False)
 
