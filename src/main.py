@@ -1,11 +1,20 @@
 import argparse
+import os
 from icecream import ic
 import pandas as pd
 from AnnotationParsing import load_or_create_gff_db, write_protein_sequences_to_fasta, extract_gene_id, extract_dna_sequences, translate_to_protein, map_nucleotides_to_amino_acids
 from MMSeqs_runner import check_mmseqs_existence, check_database, run_mmseqs
 from ProteinHitsToGenomeCoordinates import process_mmseqs_to_genome
 
+def create_and_check_output_folder(output_folder):
+    # Create the output folder and any necessary parent directories
+    os.makedirs(output_folder, exist_ok=True)
+    if os.listdir(output_folder):
+        print(f"Warning: The output folder '{output_folder}' is not empty.")
+
 def run_pipeline(fasta_path, gff_path, output_folder, database_path, mmseqs_path, threads):
+    create_and_check_output_folder(output_folder)
+
     gff_db = load_or_create_gff_db(gff_path)
     ic(gff_db)
     print(f'Number of genes in annotation: {gff_db.num_matches(biotype="gene")}')
