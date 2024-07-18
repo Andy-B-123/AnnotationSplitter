@@ -3,6 +3,7 @@ import shutil
 import subprocess
 import requests
 import tarfile
+from pathlib import Path
 
 def check_database(prefix):
     """
@@ -110,12 +111,12 @@ def check_mmseqs_existence(mmseqs_path):
 
 def run_mmseqs(protein_fasta_file, database_path, output_directory, mmseqs_path, threads=16):
     mmseqs_params = r"query,target,fident,alnlen,mismatch,gapopen,qstart,qend,tstart,tend,evalue,bits,pident,qcov,tcov,alnlen,qlen,tlen"
-    output_file = str((output_directory / "filtered_proteins.mmseqs.out"))
-    tmp_dir = str((output_directory / "filtered_proteins.mmseqs.tmp"))
+    output_file = output_directory + "/filtered_proteins.mmseqs.out"
+    tmp_dir = output_directory + "/filtered_proteins.mmseqs.tmp"
 
     command = [
-        mmseqs_path, "easy-search", str(protein_fasta_file), database_path, output_file, tmp_dir,
-        "--format-mode", "4", "--threads", str(threads), "--format-output", mmseqs_params
+        str(mmseqs_path), "easy-search", str(protein_fasta_file), str(database_path), str(output_file), str(tmp_dir),
+        "--format-mode", "4", "--min-aln-len", "100", "-e", "1.000E-010", "--threads", str(threads), "--format-output", mmseqs_params
     ]
     print(command)
     print(f"Executing command: {' '.join(command)}")

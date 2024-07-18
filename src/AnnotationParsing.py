@@ -64,6 +64,33 @@ def translate_to_protein(CDS_df):
         lambda row: pd.Series(get_protein_sequence(row)), axis=1)
     return CDS_df
 
+def map_nucleotides_to_amino_acids(CDS_spans, strand='+'):
+    # Initialize the mapping dictionary
+    nucleotide_to_aa_exon = {}
+    nucleotide_index = 0
+
+    # Adjust the order of CDS spans based on the strand
+    if strand == '-':
+        CDS_spans = [(end, start) for start, end in CDS_spans[::-1]]
+    for exon_number, (start, end) in enumerate(CDS_spans, start=1):
+        if strand == '+':
+            range_nucleotides = range(start, end + 1)
+        else:  # strand == '-'
+            range_nucleotides = range(start, end - 1, -1)
+        for nucleotide in range_nucleotides:
+            # Calculate the corresponding amino acid position
+            amino_acid_position = nucleotide_index // 3 + 1
+            nucleotide_to_aa_exon[nucleotide] = (amino_acid_position, exon_number)
+            nucleotide_index += 1
+
+    # Create reverse mapping for amino acid positions to nucleotide positions and exon numbers
+    reverse_mapping = {}
+    for nucleotide, (amino_acid_pos, exon_num) in nucleotide_to_aa_exon.items():
+        if amino_acid_pos not in reverse_mapping:
+            reverse_mapping[amino_acid_pos] = []
+        reverse_mapping[amino_acid_pos].append((nucleotide, exon_num))
+    return reverse_mapping
+
 def write_protein_sequences_to_fasta(CDS_df, output_file):
     records = []
     for index, row in CDS_df.iterrows():
