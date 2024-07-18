@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="AnnotationSplitter",
-    version="0.1.1",
+    version="0.1.2",
     packages=find_packages(where='src'),
     package_dir={'': 'src'},
     include_package_data=True,
@@ -18,7 +18,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'AnnotationSplitter=src.main:main',
+            'AnnotationSplitter=main:main',
         ],
     },
     author="Andreas Bachler",
