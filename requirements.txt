@@ -1,4 +1,5 @@
 icecream>=2.1
+matplotlib
 pandas
 tqdm
 requests
