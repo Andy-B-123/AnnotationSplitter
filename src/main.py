@@ -5,7 +5,7 @@ from AnnotationParsing import load_or_create_gff_db, write_protein_sequences_to_
 from MMSeqs_runner import check_mmseqs_existence, check_database, run_mmseqs
 from ProteinHitsToGenomeCoordinates import process_mmseqs_to_genome
 
-def main(fasta_path, gff_path, output_folder, database_path, mmseqs_path, threads):
+def run_pipeline(fasta_path, gff_path, output_folder, database_path, mmseqs_path, threads):
     gff_db = load_or_create_gff_db(gff_path)
     ic(gff_db)
     print(f'Number of genes in annotation: {gff_db.num_matches(biotype="gene")}')
