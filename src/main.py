@@ -55,14 +55,17 @@ def main(fasta_path, gff_path, output_folder, database_path, mmseqs_path, thread
     mmseqs_output_file = f'{output_folder}/filtered_proteins.mmseqs.out'
     process_mmseqs_to_genome(mmseqs_output_file, CDS_df_with_proteins, output_folder)
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(description='Process a genome and annotation file and try and identify mis-annotated genes.')
-    parser.add_argument('fasta_path', type=str, help='Path to the FASTA file')
-    parser.add_argument('gff_path', type=str, help='Path to the GFF file')
+    parser.add_argument('--fasta_path', type=str, required=True, help='Path to the FASTA file')
+    parser.add_argument('--gff_path', type=str, required=True, help='Path to the GFF file')
     parser.add_argument('--output_folder', type=str, required=True, help='Path to where the output data should be stored.')
     parser.add_argument('--database_path', type=str, required=True, help='Path to where the database has been downloaded (or needs to be downloaded).')
     parser.add_argument('--mmseqs_path', type=str, default=None, help='Path to the mmseqs executable. If not provided, the system PATH will be used.')
     parser.add_argument('--threads', type=int, default=16, help='Number of threads to run with mmseqs, defaults to 16.')
 
     args = parser.parse_args()
-    main(args.fasta_path, args.gff_path, args.output_folder, args.database_path, args.mmseqs_path, args.threads)
+    run_pipeline(args.fasta_path, args.gff_path, args.output_folder, args.database_path, args.mmseqs_path, args.threads)
+
+if __name__ == "__main__":
+    main()
