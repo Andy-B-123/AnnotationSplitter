@@ -26,6 +26,7 @@ def run_pipeline(fasta_path, gff_path, output_folder, database_path, mmseqs_path
     print(f'Number of protein coding genes: {len(protein_coding_gene_list)}')
 
     ### Processing to get longest isoform for each gene
+    print("Working on getting the longest isoform for each gene from the annotation file.")
     transcript_list = list(gff_db.get_records_matching(biotype="mRNA"))
     transcript_df = pd.DataFrame(transcript_list)
     transcript_df['gene_id'] = transcript_df['attributes'].apply(extract_gene_id)
@@ -34,6 +35,7 @@ def run_pipeline(fasta_path, gff_path, output_folder, database_path, mmseqs_path
     largest_isoforms = largest_isoforms[['gene_id', 'name', 'seqid', 'start', 'stop', 'length']].reset_index()
 
     ### Extract the DNA and protein sequences from the annotation with the fasta file
+    print("Get the protein sequences for each isoform.")
     CDS_list = list(gff_db.get_records_matching(biotype="CDS"))
     CDS_df = pd.DataFrame(CDS_list)
     filtered_CDS_df = CDS_df[CDS_df['parent_id'].isin(largest_isoforms['name'])].reset_index()

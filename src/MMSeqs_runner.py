@@ -32,6 +32,8 @@ def check_database(prefix):
                 print("The .version file does not contain 'Swiss-Prot'. Downloading the database files again...")
     else:
         print("Some required database files are missing. Downloading...")
+    # Call download_database if necessary
+    return download_database(prefix)
 
 
 def download_database(prefix):

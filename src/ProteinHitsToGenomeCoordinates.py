@@ -4,6 +4,7 @@
 ###     - Codons on splice sites aren't neatly definable on genome coordinates
 ###     - Protein hits always positive direction, genome coordiantes can be negative strand
 ###     - Sometimes I want to round things so that a single amino acid doesn't make the region 'jump' to the next exon 
+
 from tqdm import tqdm
 from cogent3 import load_annotations
 from cogent3 import load_seq
