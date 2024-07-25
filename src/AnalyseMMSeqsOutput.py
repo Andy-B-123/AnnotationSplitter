@@ -1,10 +1,11 @@
 import pandas as pd
 from icecream import ic
 from tqdm import tqdm
-from scipy.cluster.hierarchy import linkage, fcluster
+from scipy.cluster.hierarchy import linkage, fcluster, dendrogram
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
+import re
 ### Analysis workflow based on the Tribolium R Markdown document
 
 def flag_large_target_spans(df):
@@ -13,7 +14,7 @@ def flag_large_target_spans(df):
     
     # Flag queries with two or more hits in the specified range
     query_flags = df_filtered.groupby('query').size().reset_index(name='count')
-    query_flags['LargeTargetSpan'] = query_flags['count'] > 2
+    query_flags['LargeTargetSpan'] = query_flags['count'] >= 1
 
     # Merge with original dataframe to get the 'query' column
     result_df = pd.merge(df[['query']].drop_duplicates(), query_flags[['query', 'LargeTargetSpan']], on='query', how='left')
@@ -111,7 +112,7 @@ def check_target_coverage(final_results_clusters, target_threshold=0.80):
     
     return high_likelihood_chimeras
 
-def check_overlap_between_clusters(final_results_clusters, overlap_threshold=0.40):
+def check_overlap_between_clusters(final_results_clusters, overlap_threshold=0.25):
     # Step 1: Group by 'query' and 'cluster' to calculate necessary metrics
     summary_df = (
         final_results_clusters
@@ -123,44 +124,40 @@ def check_overlap_between_clusters(final_results_clusters, overlap_threshold=0.4
         .reset_index()
     )
     summary_df['total_length'] = summary_df['highest_query_point'] - summary_df['lowest_query_point']
-    
+
     # Step 2: Arrange by 'query' and 'lowest_query_point'
     summary_df = summary_df.sort_values(by=['query', 'lowest_query_point'])
-    
+
     # Step 3: Calculate overlap amount and proportion
     def calculate_overlap(sub_df):
         sub_df['overlap_amount'] = sub_df['highest_query_point'] - sub_df['lowest_query_point'].shift(-1)
-        sub_df['overlap_amount'] = sub_df['overlap_amount'].abs()
         sub_df['overlap_prop'] = sub_df['overlap_amount'] / sub_df['total_length'].shift(-1)
         return sub_df
 
     overlap_df = summary_df.groupby('query').apply(calculate_overlap).reset_index(drop=True)
-    
+
     # Step 4: Filter based on overlap proportion
-    filtered_overlap_df = overlap_df[overlap_df['overlap_prop'] < overlap_threshold]
+    filtered_overlap_df = overlap_df.groupby('query').filter(lambda x: all(x['overlap_prop'].fillna(0) <= overlap_threshold))
     
     # Step 5: Get queries with high likelihood chimerics
     higher_likelihood_chimerics = filtered_overlap_df['query'].unique().tolist()
     
     return higher_likelihood_chimerics
 
+def natural_sort_key(s):
+    return [int(text) if text.isdigit() else text.lower() for text in re.split('([0-9]+)', s)]
+
 def generate_faceted_plot(df, output_filepath):
     print("Making a nice plot of final candidate chimeras.")
     # Ensure the dataframe is copied to avoid modifications on the original
     df_copy = df.copy()
     
-    # Function to perform clustering and add cluster assignments
-    def cluster_and_plot(df):
-        Z = linkage(df[['qmidpoint_relative']], method='centroid')
-        cluster_output = fcluster(Z, 0.25, criterion='distance')
-        df.loc[:, 'cluster'] = cluster_output
-        return df
-
-    # Apply clustering to each gene
-    df_copy = df_copy.groupby('query').apply(cluster_and_plot).reset_index(drop=True)
-
+    # Sort the dataframe by 'query' column using natural order
+    df_copy['query'] = df_copy['query'].astype(str)
+    df_copy = df_copy.sort_values(by='query', key=lambda x: x.map(natural_sort_key))
+    
     # Create a colormap
-    max_clusters = df_copy['cluster'].max()
+    max_clusters = df_copy['k'].max()
     cmap = plt.get_cmap('viridis')
     colors = cmap(np.linspace(0, 1, max_clusters))
     color_dict = {i: colors[i-1] for i in range(1, max_clusters+1)}
@@ -180,9 +177,12 @@ def generate_faceted_plot(df, output_filepath):
 
     g.map_dataframe(plot_facets)
 
-    # Remove the titles and labels
+    # Set facet titles to gene names only
+    for ax, title in zip(g.axes.flatten(), g.col_names):
+        ax.set_title(title)
+
+    # Remove the x and y labels
     for ax in g.axes.flatten():
-        ax.set_title('')
         ax.set_xlabel('')
         ax.set_ylabel('')
 
@@ -192,7 +192,7 @@ def generate_faceted_plot(df, output_filepath):
 
 def convert_mmseqs_output(input_mmseqs_filepath, output_dir):
     ### Read dataframe and convert start position to relative positons
-    input_mmseqs_full_results = pd.read_csv(input_mmseqs_file, sep='\t')
+    input_mmseqs_full_results = pd.read_csv(input_mmseqs_filepath, sep='\t')
     input_mmseqs_full_results['qstart_relative'] = input_mmseqs_full_results['qstart'] / input_mmseqs_full_results['qlen']
     input_mmseqs_full_results['qend_relative'] = input_mmseqs_full_results['qend'] / input_mmseqs_full_results['qlen']
     input_mmseqs_full_results['qmidpoint_relative'] = (input_mmseqs_full_results['qstart_relative'] + input_mmseqs_full_results['qend_relative']) / 2
@@ -213,11 +213,12 @@ def convert_mmseqs_output(input_mmseqs_filepath, output_dir):
     print(f"Remaining genes to analyse for chimeric pattern: {genes_to_check.shape[0]}. \nStarting clustering...")
     # Start clustering
     input_mmseqs_full_results_postChecks = pd.merge(input_mmseqs_full_results,genes_to_check[['query']])
-    input_mmseqs_full_results_postChecks_clustered = hierarchial_clustering(input_mmseqs_full_results_postChecks, 'qmidpoint_relative', 0.22)
+    input_mmseqs_full_results_postChecks_clustered = hierarchial_clustering(input_mmseqs_full_results_postChecks, 'qmidpoint_relative', 0.17)
+    input_mmseqs_full_results_postChecks_clustered = input_mmseqs_full_results_postChecks_clustered[input_mmseqs_full_results_postChecks_clustered['k'] != 1]
     input_mmseqs_full_results_postChecks_clustered.drop_duplicates(subset=['query'])['k'].value_counts().reset_index(name='count')
-    print()
+
     # Filter clusters check 1
-    input_mmseqs_full_results_postChecks_clustered_distance = check_distinct_cluster(input_mmseqs_full_results_postChecks_clustered, cluster_distance_threshold=0.20)
+    input_mmseqs_full_results_postChecks_clustered_distance = check_distinct_cluster(input_mmseqs_full_results_postChecks_clustered, cluster_distance_threshold=0.15)
     input_mmseqs_full_results_postChecks_clustered_distance.drop_duplicates(subset=['query'])[['k',"DistinctCluster"]].value_counts().reset_index(name='count')
 
     # Filter clusters check 2
@@ -234,7 +235,7 @@ def convert_mmseqs_output(input_mmseqs_filepath, output_dir):
     input_mmseqs_full_results_postChecks_clustered_distance_cov.drop_duplicates(subset=['query'])[['k',"HighTargetCoverage"]].value_counts().reset_index(name='count')
 
     # Filter clusters check 3
-    overlap_cluster_check = check_overlap_between_clusters(input_mmseqs_full_results_postChecks_clustered_distance_cov,  overlap_threshold=0.40)
+    overlap_cluster_check = check_overlap_between_clusters(input_mmseqs_full_results_postChecks_clustered_distance_cov,  overlap_threshold=0.30)
     overlap_cluster_check_df = pd.DataFrame(overlap_cluster_check, columns = ['query'])
     overlap_cluster_check_df['NoClusterOverlap'] = True
     input_mmseqs_full_results_postChecks_clustered_distance_cov_overlap = pd.merge(
@@ -255,15 +256,12 @@ def convert_mmseqs_output(input_mmseqs_filepath, output_dir):
 
     # Select only the 'query' column and drop duplicates
     result_queries = filtered_df[['query','k']].drop_duplicates()
-
     # Display the result
     print(result_queries)
     # Save output to tsv file
     output_results_fiile = f'{output_dir}/results.final.tsv'
     filtered_df.to_csv(output_results_fiile, sep='\t', index=False)
     # Save plot to png file
-    output_plot_file = f'{output_dir}/results.plot.png'
-    generate_faceted_plot(filtered_df, output_plot_file)
-
-#input_mmseqs_file = "U:/AnnotationCheckerWithStructure/Development/output_dir/filtered_proteins.mmseqs.out"
-#convert_mmseqs_output(input_mmseqs_file,"U:/AnnotationCheckerWithStructure/Development/output_dir/")
+    if result_queries['query'].nunique() < 150:
+        output_plot_file = f'{output_dir}/results.plot.png'
+        generate_faceted_plot(filtered_df, output_plot_file)
