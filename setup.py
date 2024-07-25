@@ -1,8 +1,10 @@
 from setuptools import setup, find_packages
 
+print(find_packages(where='src'))  # Add this line to check the output
+
 setup(
     name="AnnotationSplitter",
-    version="0.1.3",
+    version="0.1.6",
     packages=find_packages(where='src'),
     package_dir={'': 'src'},
     include_package_data=True,
@@ -14,7 +16,7 @@ setup(
         "cogent3>=2024.2.5a1",
         "pyfaidx>=0.8",
         "biopython>=1.83",
-        "matplotlib"  # Add this if you are using matplotlib
+        "matplotlib"
     ],
     entry_points={
         'console_scripts': [
