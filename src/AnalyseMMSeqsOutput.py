@@ -265,5 +265,5 @@ def convert_mmseqs_output(input_mmseqs_filepath, output_dir):
     output_plot_file = f'{output_dir}/results.plot.png'
     generate_faceted_plot(filtered_df, output_plot_file)
 
-input_mmseqs_file = "U:/AnnotationCheckerWithStructure/Development/output_dir/filtered_proteins.mmseqs.out"
-convert_mmseqs_output(input_mmseqs_file,"U:/AnnotationCheckerWithStructure/Development/output_dir/")
+#input_mmseqs_file = "U:/AnnotationCheckerWithStructure/Development/output_dir/filtered_proteins.mmseqs.out"
+#convert_mmseqs_output(input_mmseqs_file,"U:/AnnotationCheckerWithStructure/Development/output_dir/")
