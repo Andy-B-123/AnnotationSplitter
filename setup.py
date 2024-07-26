@@ -9,14 +9,16 @@ setup(
     package_dir={'': 'src'},
     include_package_data=True,
     install_requires=[
-        "icecream>=2.1",
-        "pandas",
-        "tqdm",
+        "scipy>=1.13.1",
+        "pandas>=2.2.2",
+        "numpy>=1.26.4",
+        "matplotlib>=3.9.0",
+        "cogent3>=2024.5.7a1",
+        "tqdm>=4.66.4",
+        "icecream>=2.1.3",
+        "biopython>=1.8",
+        "pyfaidx>=0.8.1.1",
         "requests",
-        "cogent3>=2024.2.5a1",
-        "pyfaidx>=0.8",
-        "biopython>=1.83",
-        "matplotlib"
     ],
     entry_points={
         'console_scripts': [

@@ -111,15 +111,16 @@ def check_mmseqs_existence(mmseqs_path):
         print("Failed to download 'mmseqs'. Please check the URL and try again.")
         return None
 
-def run_mmseqs(protein_fasta_file, database_path, output_directory, mmseqs_path, threads=16):
-    mmseqs_params = r"query,target,fident,alnlen,mismatch,gapopen,qstart,qend,tstart,tend,evalue,bits,pident,qcov,tcov,alnlen,qlen,tlen"
+def run_mmseqs(protein_fasta_file, database_path, output_directory, mmseqs_path, threads=16,mmseqs_params="--min-aln-len 100 -e 1.000E-010"):
+    mmseqs_params_output = r"query,target,fident,alnlen,mismatch,gapopen,qstart,qend,tstart,tend,evalue,bits,pident,qcov,tcov,qlen,tlen"
+    mmseqs_params_input = mmseqs_params
+    mmseqs_params_input_list = mmseqs_params_input.split()
     output_file = output_directory + "/filtered_proteins.mmseqs.out"
     tmp_dir = output_directory + "/filtered_proteins.mmseqs.tmp"
 
     command = [
         str(mmseqs_path), "easy-search", str(protein_fasta_file), str(database_path), str(output_file), str(tmp_dir),
-        "--format-mode", "4", "--min-aln-len", "100", "-e", "1.000E-010", "--threads", str(threads), "--format-output", mmseqs_params
-    ]
+        "--format-mode", "4", "--format-output", mmseqs_params_output, "--threads", str(threads)] + mmseqs_params_input_list 
     print(command)
     print(f"Executing command: {' '.join(command)}")
     try:

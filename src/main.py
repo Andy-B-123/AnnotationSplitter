@@ -13,7 +13,7 @@ def create_and_check_output_folder(output_folder):
     if os.listdir(output_folder):
         print(f"Warning: The output folder '{output_folder}' is not empty.")
 
-def run_pipeline(fasta_path, gff_path, output_folder, database_path, mmseqs_path, threads):
+def run_pipeline(fasta_path, gff_path, output_folder, database_path, mmseqs_path, threads, mmseqs_params,create_bed_file):
     create_and_check_output_folder(output_folder)
 
     gff_db = load_or_create_gff_db(gff_path)
@@ -59,17 +59,17 @@ def run_pipeline(fasta_path, gff_path, output_folder, database_path, mmseqs_path
     database_path = check_database(database_path)
 
     ### Run MMSeqs with the SwissProt database on the generated protein fasta file
-    run_mmseqs(output_fasta_file, database_path, output_folder, mmseqs_path, threads)
+    run_mmseqs(output_fasta_file, database_path, output_folder, mmseqs_path, threads, mmseqs_params)
 
     print("Finished running MMSeqs.")
 
-    ### Map hits to genome, make a nice bed file for viewing
-    print("Processing the mmseqs output to a nice .bed file relative to the genome...")
-    mmseqs_output_file = f'{output_folder}/filtered_proteins.mmseqs.out'
-    process_mmseqs_to_genome(mmseqs_output_file, CDS_df_with_proteins, output_folder)
-
     ### Process MMSeqs output for clusters
+    mmseqs_output_file = f'{output_folder}/filtered_proteins.mmseqs.out'
     convert_mmseqs_output(mmseqs_output_file,output_folder)
+
+    ### Map hits to genome, make a nice bed file for viewing
+    if create_bed_file:
+        process_mmseqs_to_genome(mmseqs_output_file, CDS_df_with_proteins, output_folder)
 
 def main():
     parser = argparse.ArgumentParser(description='Process a genome and annotation file and try and identify mis-annotated genes.')
@@ -78,10 +78,13 @@ def main():
     parser.add_argument('--output_folder', type=str, required=True, help='Path to where the output data should be stored.')
     parser.add_argument('--database_path', type=str, required=True, help='Path to where the database has been downloaded (or needs to be downloaded).')
     parser.add_argument('--mmseqs_path', type=str, default=None, help='Path to the mmseqs executable. If not provided, the system PATH will be used.')
+    parser.add_argument('--mmseqs_params', type=str, default="--min-aln-len 100 -e 1.000E-010", help='Paramaters used instead of the default ones (min-aln-len 100 and e-filter -10). Does not change output format parameters.')
     parser.add_argument('--threads', type=int, default=16, help='Number of threads to run with mmseqs, defaults to 16.')
+    parser.add_argument('--threads', type=int, default=16, help='Number of threads to run with mmseqs, defaults to 16.')
+    parser.add_argument('--create_bed_file', action='store_true', help='If set, create a BED file.')
 
     args = parser.parse_args()
-    run_pipeline(args.fasta_path, args.gff_path, args.output_folder, args.database_path, args.mmseqs_path, args.threads)
+    run_pipeline(args.fasta_path, args.gff_path, args.output_folder, args.database_path, args.mmseqs_path, args.threads,args.mmseqs_params,args.create_bed_file)
 
 if __name__ == "__main__":
     main()

@@ -47,6 +47,8 @@ def extract_nucleotide_positions(row):
     return pd.Series([start_nucleotide, end_nucleotide, start_exon, end_exon])
 
 def process_mmseqs_to_genome(mmseqs_output_file,annotation_df,output_directory):
+    print("Processing the mmseqs output to a nice .bed file relative to the genome...")
+
     ### Read in the MMSeqs results to a DataFrame
     mmseqs_dataframe = pd.read_csv(mmseqs_output_file, sep = '\t')
 
