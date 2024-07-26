@@ -20,6 +20,7 @@ setup(
         "pyfaidx>=0.8.1.1",
         "requests",
         "numexpr>=2.8.4",
+        "mpi4py>=3.1.6",
     ],
     entry_points={
         'console_scripts': [

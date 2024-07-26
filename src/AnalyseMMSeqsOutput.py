@@ -4,6 +4,7 @@ from tqdm import tqdm
 from scipy.cluster.hierarchy import linkage, fcluster, dendrogram
 import seaborn as sns
 import matplotlib.pyplot as plt
+matplotlib.use('Agg')
 import numpy as np
 import re
 ### Analysis workflow based on the Tribolium R Markdown document
@@ -231,7 +232,7 @@ def convert_mmseqs_output(input_mmseqs_filepath, output_dir):
         high_coverage_df,
         how='left'
     )
-    input_mmseqs_full_results_postChecks_clustered_distance_cov['HighTargetCoverage'].fillna('false', inplace=True)
+    input_mmseqs_full_results_postChecks_clustered_distance_cov['HighTargetCoverage'] = input_mmseqs_full_results_postChecks_clustered_distance_cov['HighTargetCoverage'].fillna('false')
     input_mmseqs_full_results_postChecks_clustered_distance_cov.drop_duplicates(subset=['query'])[['k',"HighTargetCoverage"]].value_counts().reset_index(name='count')
 
     # Filter clusters check 3
@@ -244,7 +245,7 @@ def convert_mmseqs_output(input_mmseqs_filepath, output_dir):
         how='left'
     )
 
-    input_mmseqs_full_results_postChecks_clustered_distance_cov_overlap['NoClusterOverlap'].fillna(False, inplace=True)
+    input_mmseqs_full_results_postChecks_clustered_distance_cov_overlap['NoClusterOverlap'] = input_mmseqs_full_results_postChecks_clustered_distance_cov_overlap['NoClusterOverlap'].fillna(False)
     input_mmseqs_full_results_postChecks_clustered_distance_cov_overlap.drop_duplicates(subset=['query'])[['k',"NoClusterOverlap"]].value_counts().reset_index(name='count')
 
     # Filter the DataFrame where all conditions are True
