@@ -19,6 +19,7 @@ setup(
         "biopython>=1.8",
         "pyfaidx>=0.8.1.1",
         "requests",
+        "numexpr>=2.8.4",
     ],
     entry_points={
         'console_scripts': [

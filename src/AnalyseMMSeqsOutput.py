@@ -266,6 +266,7 @@ def convert_mmseqs_output(input_mmseqs_filepath, output_dir):
         output_plot_file = f'{output_dir}/results.plot.png'
         generate_faceted_plot(filtered_df, output_plot_file)
 
+""" 
 input_mmseqs_filepath= r"U:\\AnnotationCheckerWithStructure\\Development\\TCA_New\\test_3"
 output_dir =r"U:\\AnnotationCheckerWithStructure\\Development\\TCA_New\\"
-convert_mmseqs_output(input_mmseqs_filepath, output_dir)
+convert_mmseqs_output(input_mmseqs_filepath, output_dir) """
