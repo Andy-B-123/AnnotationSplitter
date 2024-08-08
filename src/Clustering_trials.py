@@ -24,7 +24,9 @@ def split_by_row_count(data):
 def natural_sort_key(s):
     return [int(text) if text.isdigit() else text.lower() for text in re.split('([0-9]+)', s)]
 
-def plot_faceted_segments(df_raw, output_filename = 'temp.png'):
+def plot_faceted_segments(df_raw, output_dir, output_filename = 'temp.png'):
+    os.environ['MPLCONFIGDIR'] = output_dir + "/plot_runtime"
+    print(f"Setting plotting temp folder to: {os.environ['MPLCONFIGDIR']}")
     if df_raw.empty:
         print("The DataFrame is empty. No plot will be generated.")
         return
@@ -280,9 +282,9 @@ def convert_mmseqs_output(input_mmseqs_filepath, output_dir):
     print("Making some pretty plots...")
     basename = os.path.basename(input_mmseqs_filepath)
     two_rows_df, three_rows_df, four_or_more_rows_df = split_by_row_count(filtered_genes_overlap_high_confidence)
-    plot_faceted_segments(two_rows_df, f'{output_dir}/{basename}.Chimerics-2mer.png')
-    plot_faceted_segments(three_rows_df, f'{output_dir}/{basename}.Chimerics-3mer.png')
-    plot_faceted_segments(four_or_more_rows_df, f'{output_dir}/{basename}.Chimerics-4OrMore-mer.png')
+    plot_faceted_segments(two_rows_df,output_dir, f'{output_dir}/{basename}.Chimerics-2mer.png')
+    plot_faceted_segments(three_rows_df,output_dir, f'{output_dir}/{basename}.Chimerics-3mer.png')
+    plot_faceted_segments(four_or_more_rows_df, output_dir, f'{output_dir}/{basename}.Chimerics-4OrMore-mer.png')
     filtered_genes_overlap_high_confidence.to_csv(f'{output_dir}/{basename}.finalResults.tsv', sep ='\t')
 
     return filtered_genes_overlap_high_confidence
