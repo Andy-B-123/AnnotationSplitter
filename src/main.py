@@ -70,6 +70,12 @@ def run_pipeline(fasta_path, gff_path, output_folder, database_path, mmseqs_path
     ### Map hits to genome, make a nice bed file for viewing
     if create_bed_file:
         process_mmseqs_to_genome(mmseqs_output_file, df_of_bad_genes, CDS_df_with_proteins, output_folder)
+    
+    ### Extract incorrect genes to fasta to make my life easier
+    list_of_bad_genes = bad_genes_df['query'].unique().tolist()
+    output_incorrect_fasta_file = f'{output_folder}/incorrect_protein_sequences.fasta'
+    write_protein_sequences_to_fasta(CDS_df_with_proteins[CDS_df_with_proteins['query'].isin(list_of_bad_genes)], output_incorrect_fasta_file)
+    print(f"Protein sequences written to {output_incorrect_fasta_file}")
 
 def main():
     parser = argparse.ArgumentParser(description='Process a genome and annotation file and try and identify mis-annotated genes.')
