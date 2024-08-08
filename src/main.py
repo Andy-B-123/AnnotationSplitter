@@ -91,6 +91,7 @@ def run_pipeline(fasta_path, gff_path, output_folder, database_path, mmseqs_path
 
     print("Finished running MMSeqs.")
 
+    os.environ['MPLCONFIGDIR'] = output_folder + "/plot_runtime"
     ### Process MMSeqs output for clusters
     mmseqs_output_file = output_folder + '/filtered_proteins.mmseqs.out'
     df_of_bad_genes = convert_mmseqs_output(mmseqs_output_file,output_folder)

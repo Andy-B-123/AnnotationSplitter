@@ -11,6 +11,7 @@ import seaborn as sns
 import matplotlib.colors as mcolors
 import os
 
+
 def split_by_row_count(data):
     # Count the number of rows per gene
     row_counts = data['query'].value_counts()
