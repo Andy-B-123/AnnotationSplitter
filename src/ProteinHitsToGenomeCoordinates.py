@@ -6,9 +6,6 @@
 ###     - Sometimes I want to round things so that a single amino acid doesn't make the region 'jump' to the next exon 
 
 from tqdm import tqdm
-from cogent3 import load_annotations
-from cogent3 import load_seq
-from cogent3.core.annotation_db import GffAnnotationDb
 import pandas as pd
 import os
 import matplotlib.pyplot as plt
