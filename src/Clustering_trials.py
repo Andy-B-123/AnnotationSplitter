@@ -246,6 +246,7 @@ def convert_mmseqs_output(input_mmseqs_filepath, output_dir):
 
     ### Remove any where the hit is linear along both the query and target(indicates that it's not a mis-annotation)
     print("Removing false positives based on slope...")
+    potential_misannotated = potential_misannotated.copy()
     potential_misannotated.loc[:,'slope'] = (potential_misannotated['tend_relative'] - potential_misannotated['tstart_relative']) / (potential_misannotated['qend_relative'] - potential_misannotated['qstart_relative'])
     filtered_sample = potential_misannotated.groupby('query').filter(lambda x: (x['slope'] >= 1.5).all())
     print(f"Remaining after first filter: {filtered_sample['query'].nunique()}")
