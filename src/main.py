@@ -2,6 +2,7 @@ import argparse
 import os
 from icecream import ic
 import pandas as pd
+import warnings
 from AnnotationParsing import *
 from MMSeqs_runner import *
 from ProteinHitsToGenomeCoordinates import *
@@ -14,39 +15,66 @@ def create_and_check_output_folder(output_folder):
         print(f"Warning: The output folder '{output_folder}' is not empty.")
 
 def run_pipeline(fasta_path, gff_path, output_folder, database_path, mmseqs_path, threads, mmseqs_params,create_bed_file):
+
     create_and_check_output_folder(output_folder)
 
-    gff_db = load_or_create_gff_db(gff_path)
-    ic(gff_db)
-    print(f'Number of genes in annotation: {gff_db.num_matches(biotype="gene")}')
-    print(f'Number of transcripts in annotation: {gff_db.num_matches(biotype="mRNA")}')
-    print(f'Average number transcripts per gene: {round(gff_db.num_matches(biotype="mRNA")/gff_db.num_matches(biotype="gene"),2)}')
 
-    genes_list = list(gff_db.get_records_matching(biotype="gene"))
-    protein_coding_gene_list = [gene["attributes"].split(";")[0].split("=")[1] for gene in genes_list if "biotype=protein_coding" in gene["attributes"]]
-    print(f'Number of protein coding genes: {len(protein_coding_gene_list)}')
+    gff_db = load_gff(gff_path)
+    # Suppress specific FutureWarning
+    warnings.filterwarnings("ignore", category=FutureWarning, module='gffpandas')
+    gff_stats = gff_db.stats_dic()
+    annot_num_genes = gff_stats.get('Counted_feature_types').get('gene')
+    annot_num_trans = gff_stats.get('Counted_feature_types').get('mRNA')
+    print(f'Number of genes in annotation: {annot_num_genes}')
+    print(f'Number of transcripts in annotation: {annot_num_trans}')
+    print(f'Average number transcripts per gene: {round(annot_num_trans/annot_num_genes,2)}')
+
+    genes_df = gff_db.filter_feature_of_type(['gene'])
+    genes_df_to_columns = genes_df.attributes_to_columns()
+    column_name_list = genes_df_to_columns.columns.tolist()
+    biotype_index = None
+    biotype_column = None
+    protein_coding_df = None
+    for index, column_header in enumerate(column_name_list):
+        if 'biotype' in column_header:
+            biotype_index = index
+            biotype_column = column_header
+    if biotype_index == None:
+        print("Hmmm no biotype present in attributes of 'genes', going to assume all are protein coding!")
+        protein_coding_df = genes_df_to_columns.reset_index(drop=True)
+    else:
+        protein_coding_df = genes_df_to_columns[genes_df_to_columns[biotype_column] == 'protein_coding'].reset_index(drop=True)
+    print(f'Number of protein coding genes: {len(protein_coding_df)}')
 
     ### Processing to get longest isoform for each gene
     print("Working on getting the longest isoform for each gene from the annotation file.")
-    transcript_list = list(gff_db.get_records_matching(biotype="mRNA"))
-    transcript_df = pd.DataFrame(transcript_list)
-    transcript_df['gene_id'] = transcript_df['attributes'].apply(extract_gene_id)
-    transcript_df['length'] = transcript_df['stop'] - transcript_df['start']
-    largest_isoforms = transcript_df.loc[transcript_df.groupby('gene_id')['length'].idxmax()]
-    largest_isoforms = largest_isoforms[['gene_id', 'name', 'seqid', 'start', 'stop', 'length']].reset_index()
+    transcript_df = gff_db.filter_feature_of_type(['mRNA']).attributes_to_columns()
+    transcript_df['length'] = transcript_df['end'] - transcript_df['start']
+    largest_isoforms = transcript_df.loc[transcript_df.groupby('Parent')['length'].idxmax()]
+    largest_isoforms = largest_isoforms[['Parent', 'ID', 'seq_id', 'start', 'end', 'length']].reset_index(drop = True)
 
     ### Extract the DNA and protein sequences from the annotation with the fasta file
     print("Get the protein sequences for each isoform.")
-    CDS_list = list(gff_db.get_records_matching(biotype="CDS"))
-    CDS_df = pd.DataFrame(CDS_list)
-    filtered_CDS_df = CDS_df[CDS_df['parent_id'].isin(largest_isoforms['name'])].reset_index()
-    CDS_df_with_sequences = extract_dna_sequences(filtered_CDS_df, fasta_path)
+    CDS_df = gff_db.filter_feature_of_type(['CDS']).attributes_to_columns()
+    filtered_CDS_df = CDS_df[CDS_df['Parent'].isin(largest_isoforms['ID'])].reset_index(drop = True)
+    filtered_CDS_df_data = filtered_CDS_df.iloc[:, 8:].drop_duplicates()
+
+    grouped = filtered_CDS_df.sort_values(by='start').groupby(['Parent','strand', 'seq_id'], group_keys=False).apply(
+        lambda x: pd.Series({
+            'spans': [(row['start']-1, (row['end'])) for idx, row in x.iterrows()]
+        })
+    ).reset_index()
+    merged_df = pd.merge(grouped, filtered_CDS_df_data, on='Parent', how='left')
+    CDS_df_with_sequences = extract_dna_sequences(merged_df, fasta_path)
     CDS_df_with_proteins = translate_to_protein(CDS_df_with_sequences)
     CDS_df_with_proteins['nucleotide_to_aa_mapping'] = CDS_df_with_proteins.apply(lambda row: map_nucleotides_to_amino_acids(row['spans'], row['strand']), axis=1)
+    CDS_df_with_proteins['ID'] = CDS_df_with_proteins['ID'].str.replace('cds-', '')
+    CDS_df_with_proteins['Parent'] = CDS_df_with_proteins['Parent'].str.replace('rna-', '')
 
     ### Write a nice summary dataframe for later
     output_csv_file = f'{output_folder}/protein_sequences.csv'
-    CDS_df_with_proteins.to_csv(output_csv_file, columns=['seqid', 'source', 'start', 'biotype','start','stop', 'strand', 'attributes', 'name', 'parent_id','protein_sequence', 'is_partial','nucleotide_to_aa_mapping'], index=False)
+    excluded_columns = ['nucleotide_to_aa_mapping']
+    CDS_df_with_proteins.drop(columns = excluded_columns).to_csv(output_csv_file, sep="\t", index=False)
     print(f"DataFrame written to {output_csv_file}")
 
     ### Write proteins to file
@@ -64,17 +92,17 @@ def run_pipeline(fasta_path, gff_path, output_folder, database_path, mmseqs_path
     print("Finished running MMSeqs.")
 
     ### Process MMSeqs output for clusters
-    mmseqs_output_file = f'{output_folder}/filtered_proteins.mmseqs.out'
+    mmseqs_output_file = f'{output_folder}\\filtered_proteins.mmseqs.out'
     df_of_bad_genes = convert_mmseqs_output(mmseqs_output_file,output_folder)
 
     ### Map hits to genome, make a nice bed file for viewing
     if create_bed_file:
         process_mmseqs_to_genome(mmseqs_output_file, df_of_bad_genes, CDS_df_with_proteins, output_folder)
-    
+
     ### Extract incorrect genes to fasta to make my life easier
     list_of_bad_genes = df_of_bad_genes['query'].unique().tolist()
     output_incorrect_fasta_file = f'{output_folder}/incorrect_protein_sequences.fasta'
-    write_protein_sequences_to_fasta(CDS_df_with_proteins[CDS_df_with_proteins['parent_id'].isin(list_of_bad_genes)], output_incorrect_fasta_file)
+    write_protein_sequences_to_fasta(CDS_df_with_proteins[CDS_df_with_proteins['ID'].isin(list_of_bad_genes)], output_incorrect_fasta_file)
     print(f"Protein sequences written to {output_incorrect_fasta_file}")
 
 def main():

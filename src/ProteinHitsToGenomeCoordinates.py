@@ -54,12 +54,12 @@ def process_mmseqs_to_genome(mmseqs_output_file,bad_genes_df, annotation_df,outp
 
     ### Filter to just keep rows where 'query' is in the list of bad_genes_df
     list_of_bad_genes = bad_genes_df['query'].unique().tolist()
-    mmseqs_dataframe = mmseqs_dataframe[mmseqs_dataframe['parent_id'].isin(list_of_bad_genes)]
+    mmseqs_dataframe = mmseqs_dataframe[mmseqs_dataframe['query'].isin(list_of_bad_genes)]
     
     ### Add 'parent' information for each hit:
     mmseqs_dataframe
-    slim_df_metadata = annotation_df[['name', 'strand','seqid','parent_id','nucleotide_to_aa_mapping']]
-    mmseqs_dataframe_meta = pd.merge(mmseqs_dataframe, slim_df_metadata, left_on='query', right_on='name', how='left')
+    slim_df_metadata = annotation_df[['ID', 'strand','seq_id','Parent','nucleotide_to_aa_mapping']]
+    mmseqs_dataframe_meta = pd.merge(mmseqs_dataframe, slim_df_metadata, left_on='query', right_on='ID', how='left')
 
     # Apply the function to each row and create new columns
     mmseqs_dataframe_meta[['genome_start', 'genome_end', 'exon_start', 'exon_end']] = mmseqs_dataframe_meta.apply(extract_nucleotide_positions, axis=1)
@@ -72,10 +72,10 @@ def process_mmseqs_to_genome(mmseqs_output_file,bad_genes_df, annotation_df,outp
     mmseqs_dataframe_meta['thickEnd'] = mmseqs_dataframe_meta['genome_end'].astype(int)  # Default thickEnd
 
     mmseqs_dataframe_meta['itemRgb'] = mmseqs_dataframe_meta['tcov'].apply(bits_to_rgb, args=(0, 1.0))
-    mmseqs_dataframe_meta_sort = mmseqs_dataframe_meta.sort_values(by=['seqid', 'genome_start'])
-    mmseqs_dataframe_meta_sort['unique_id'] = mmseqs_dataframe_meta_sort['parent_id'] + "_" + mmseqs_dataframe_meta_sort['target']
+    mmseqs_dataframe_meta_sort = mmseqs_dataframe_meta.sort_values(by=['seq_id', 'genome_start'])
+    mmseqs_dataframe_meta_sort['unique_id'] = mmseqs_dataframe_meta_sort['Parent'] + "_" + mmseqs_dataframe_meta_sort['target']
     # Specify the columns to write
-    columns_to_write = ['seqid', 'genome_start', 'genome_end', 'unique_id', 'tcov' ,'strand','thickStart',"thickEnd","itemRgb"]
+    columns_to_write = ['seq_id', 'genome_start', 'genome_end', 'unique_id', 'tcov' ,'strand','thickStart',"thickEnd","itemRgb"]
 
     # Write the specified columns to a BED file
     output_file = os.path.join(output_directory,"filtered_proteins.mmseqs.relativeToGenome.bed")

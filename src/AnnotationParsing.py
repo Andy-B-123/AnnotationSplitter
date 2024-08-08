@@ -1,22 +1,14 @@
 import os
 import pandas as pd
-from cogent3 import load_annotations
-from cogent3.core.annotation_db import GffAnnotationDb
+import gffpandas.gffpandas as gffpd
 from pyfaidx import Fasta
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio import SeqIO
 
-def load_or_create_gff_db(gff_path):
-    db_path = f"{gff_path}.db"
-    if os.path.exists(db_path):
-        print(f"Loading existing database from {db_path}")
-        gff_db = GffAnnotationDb(source=db_path)
-    else:
-        print(f"Creating new database from {gff_path}")
-        gff_db = load_annotations(path=gff_path)
-        gff_db.write(db_path)
-    return gff_db
+def load_gff(gff_path):
+    annotation = gffpd.read_gff3(gff_path)
+    return annotation
 
 def extract_gene_id(attributes):
     for attribute in attributes.split(';'):
@@ -34,7 +26,7 @@ def reverse_complement(sequence):
 def extract_dna_sequences(CDS_df, fasta_file):
     fasta = Fasta(fasta_file)
     def get_sequence(row):
-        seqid = row['seqid']
+        seqid = row['seq_id']
         spans = row['spans']
         strand = row['strand']
         sequence = ''
@@ -94,9 +86,9 @@ def map_nucleotides_to_amino_acids(CDS_spans, strand='+'):
 def write_protein_sequences_to_fasta(CDS_df, output_file):
     records = []
     for index, row in CDS_df.iterrows():
-        header = row['name'].replace('cds-', '')
-        gene_id = extract_gene_id(row['attributes'])
-        transcript_id = row['parent_id'].replace('rna-', '')
+        header = row['ID'].replace('cds-', '')
+        gene_id = row['gene']
+        transcript_id = row['Parent'].replace('rna-', '')
         description = f"geneID={gene_id} transcriptID={transcript_id}"
         sequence = row['protein_sequence']
         record = SeqRecord(Seq(sequence), id=header, description=description)

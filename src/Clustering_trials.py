@@ -221,7 +221,7 @@ def convert_mmseqs_output(input_mmseqs_filepath, output_dir):
     # Basic stats
     total_number_of_genes_with_hits = input_mmseqs_full_results['query'].nunique()
     print(f"Total number of genes with hits in MMSeqs output: {total_number_of_genes_with_hits}" )
-
+    print("Processing hits to remove redundant hits...")
     collapsed_data = collapse_segments_initial(input_mmseqs_full_results, collapse_direction='left')
     #plot_query_counts_histogram(collapsed_data)
     #plot_faceted_segments(collapsed_data)
