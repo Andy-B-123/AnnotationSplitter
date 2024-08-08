@@ -54,7 +54,7 @@ def process_mmseqs_to_genome(mmseqs_output_file,bad_genes_df, annotation_df,outp
 
     ### Filter to just keep rows where 'query' is in the list of bad_genes_df
     list_of_bad_genes = bad_genes_df['query'].unique().tolist()
-    mmseqs_dataframe = mmseqs_dataframe[mmseqs_dataframe['protein_sequence'].isin(list_of_bad_genes)]
+    mmseqs_dataframe = mmseqs_dataframe[mmseqs_dataframe['parent_id'].isin(list_of_bad_genes)]
     
     ### Add 'parent' information for each hit:
     mmseqs_dataframe

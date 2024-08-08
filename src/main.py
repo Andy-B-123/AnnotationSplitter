@@ -72,9 +72,9 @@ def run_pipeline(fasta_path, gff_path, output_folder, database_path, mmseqs_path
         process_mmseqs_to_genome(mmseqs_output_file, df_of_bad_genes, CDS_df_with_proteins, output_folder)
     
     ### Extract incorrect genes to fasta to make my life easier
-    list_of_bad_genes = bad_genes_df['query'].unique().tolist()
+    list_of_bad_genes = df_of_bad_genes['query'].unique().tolist()
     output_incorrect_fasta_file = f'{output_folder}/incorrect_protein_sequences.fasta'
-    write_protein_sequences_to_fasta(CDS_df_with_proteins[CDS_df_with_proteins['protein_sequence'].isin(list_of_bad_genes)], output_incorrect_fasta_file)
+    write_protein_sequences_to_fasta(CDS_df_with_proteins[CDS_df_with_proteins['parent_id'].isin(list_of_bad_genes)], output_incorrect_fasta_file)
     print(f"Protein sequences written to {output_incorrect_fasta_file}")
 
 def main():
