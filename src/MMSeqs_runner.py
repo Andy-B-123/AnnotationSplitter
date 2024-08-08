@@ -111,7 +111,7 @@ def check_mmseqs_existence(mmseqs_path):
         print("Failed to download 'mmseqs'. Please check the URL and try again.")
         return None
 
-def run_mmseqs(protein_fasta_file, database_path, output_directory, mmseqs_path, threads=16,mmseqs_params="--min-aln-len 100 -e 1.000E-010"):
+def run_mmseqs(protein_fasta_file, database_path, output_directory, mmseqs_path, threads=16,mmseqs_params="--min-aln-len 100"):
     mmseqs_params_output = r"query,target,fident,alnlen,mismatch,gapopen,qstart,qend,tstart,tend,evalue,bits,pident,qcov,tcov,qlen,tlen"
     mmseqs_params_input = mmseqs_params
     mmseqs_params_input_list = mmseqs_params_input.split()

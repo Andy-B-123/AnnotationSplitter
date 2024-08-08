@@ -5,7 +5,7 @@ import pandas as pd
 from AnnotationParsing import *
 from MMSeqs_runner import *
 from ProteinHitsToGenomeCoordinates import *
-from AnalyseMMSeqsOutput import *
+from Clustering_trials import *
 
 def create_and_check_output_folder(output_folder):
     # Create the output folder and any necessary parent directories
@@ -65,11 +65,11 @@ def run_pipeline(fasta_path, gff_path, output_folder, database_path, mmseqs_path
 
     ### Process MMSeqs output for clusters
     mmseqs_output_file = f'{output_folder}/filtered_proteins.mmseqs.out'
-    convert_mmseqs_output(mmseqs_output_file,output_folder)
+    df_of_bad_genes = convert_mmseqs_output(mmseqs_output_file,output_folder)
 
     ### Map hits to genome, make a nice bed file for viewing
     if create_bed_file:
-        process_mmseqs_to_genome(mmseqs_output_file, CDS_df_with_proteins, output_folder)
+        process_mmseqs_to_genome(mmseqs_output_file, df_of_bad_genes, CDS_df_with_proteins, output_folder)
 
 def main():
     parser = argparse.ArgumentParser(description='Process a genome and annotation file and try and identify mis-annotated genes.')

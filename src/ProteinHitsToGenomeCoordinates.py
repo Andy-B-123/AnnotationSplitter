@@ -46,12 +46,16 @@ def extract_nucleotide_positions(row):
         start_nucleotide, end_nucleotide = end_nucleotide, start_nucleotide
     return pd.Series([start_nucleotide, end_nucleotide, start_exon, end_exon])
 
-def process_mmseqs_to_genome(mmseqs_output_file,annotation_df,output_directory):
+def process_mmseqs_to_genome(mmseqs_output_file,bad_genes_df, annotation_df,output_directory):
     print("Processing the mmseqs output to a nice .bed file relative to the genome...")
 
     ### Read in the MMSeqs results to a DataFrame
     mmseqs_dataframe = pd.read_csv(mmseqs_output_file, sep = '\t')
 
+    ### Filter to just keep rows where 'query' is in the list of bad_genes_df
+    list_of_bad_genes = bad_genes_df['query'].unique().tolist()
+    mmseqs_dataframe = mmseqs_dataframe[mmseqs_dataframe['query'].isin(list_of_bad_genes)]
+    
     ### Add 'parent' information for each hit:
     mmseqs_dataframe
     slim_df_metadata = annotation_df[['name', 'strand','seqid','parent_id','nucleotide_to_aa_mapping']]
