@@ -13,14 +13,13 @@ setup(
         "pandas>=2.2.2",
         "numpy>=1.26.4",
         "matplotlib>=3.9.0",
-        "cogent3>=2024.5.7a1",
+        "gffpandas>=1.2.0",
         "tqdm>=4.66.4",
         "icecream>=2.1.3",
         "biopython>=1.8",
         "pyfaidx>=0.8.1.1",
         "requests",
-        "numexpr>=2.8.4",
-        "mpi4py>=3.1.6",
+        "numexpr>=2.8.4"
     ],
     entry_points={
         'console_scripts': [
