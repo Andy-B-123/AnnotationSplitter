@@ -92,7 +92,7 @@ def run_pipeline(fasta_path, gff_path, output_folder, database_path, mmseqs_path
     print("Finished running MMSeqs.")
 
     ### Process MMSeqs output for clusters
-    mmseqs_output_file = f'{output_folder}\\filtered_proteins.mmseqs.out'
+    mmseqs_output_file = output_folder + '/filtered_proteins.mmseqs.out'
     df_of_bad_genes = convert_mmseqs_output(mmseqs_output_file,output_folder)
 
     ### Map hits to genome, make a nice bed file for viewing
@@ -101,7 +101,7 @@ def run_pipeline(fasta_path, gff_path, output_folder, database_path, mmseqs_path
 
     ### Extract incorrect genes to fasta to make my life easier
     list_of_bad_genes = df_of_bad_genes['query'].unique().tolist()
-    output_incorrect_fasta_file = f'{output_folder}/incorrect_protein_sequences.fasta'
+    output_incorrect_fasta_file = output_folder + '/incorrect_protein_sequences.fasta'
     write_protein_sequences_to_fasta(CDS_df_with_proteins[CDS_df_with_proteins['ID'].isin(list_of_bad_genes)], output_incorrect_fasta_file)
     print(f"Protein sequences written to {output_incorrect_fasta_file}")
 
