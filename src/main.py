@@ -112,7 +112,7 @@ def main():
     parser.add_argument('--output_folder', type=str, required=True, help='Path to where the output data should be stored.')
     parser.add_argument('--database_path', type=str, required=True, help='Path to where the database has been downloaded (or needs to be downloaded).')
     parser.add_argument('--mmseqs_path', type=str, default=None, help='Path to the mmseqs executable. If not provided, the system PATH will be used.')
-    parser.add_argument('--mmseqs_params', type=str, default="--min-aln-len 100 -e 1.000E-010", help='Paramaters used instead of the default ones (min-aln-len 100 and e-filter -10). Does not change output format parameters.')
+    parser.add_argument('--mmseqs_params', type=str, default="-s 7.5", help='Paramaters used instead of the default ones ("-s 7.5", high sensitivty). Does not change output format parameters.')
     parser.add_argument('--threads', type=int, default=16, help='Number of threads to run with mmseqs, defaults to 16.')
     parser.add_argument('--create_bed_file', action='store_true', help='If set, create a BED file.')
 
