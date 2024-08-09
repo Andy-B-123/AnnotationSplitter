@@ -19,7 +19,8 @@ setup(
         "biopython>=1.8",
         "pyfaidx>=0.8.1.1",
         "requests",
-        "numexpr>=2.8.4"
+        "numexpr>=2.8.4",
+        "plotnine>=0.13.6"
     ],
     entry_points={
         'console_scripts': [
