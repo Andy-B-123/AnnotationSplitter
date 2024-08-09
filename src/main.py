@@ -14,8 +14,10 @@ def create_and_check_output_folder(output_folder):
     if os.listdir(output_folder):
         print(f"Warning: The output folder '{output_folder}' is not empty.")
 
+#fasta_path=r"U:\\AnnotationCheckerWithStructure\\Development\\check_other_organisms\\GCF_039881205.1_ESF131.1_genomic.fna"
+#gff_path=r"U:\\AnnotationCheckerWithStructure\\Development\\check_other_organisms\\GCF_039881205.1_ESF131.1_genomic.gff"
+#output_folder=r"U:\\AnnotationCheckerWithStructure\\Development\\Redux3.ESF"
 def run_pipeline(fasta_path, gff_path, output_folder, database_path, mmseqs_path, threads, mmseqs_params,create_bed_file):
-
     create_and_check_output_folder(output_folder)
 
 
@@ -91,8 +93,7 @@ def run_pipeline(fasta_path, gff_path, output_folder, database_path, mmseqs_path
 
     print("Finished running MMSeqs.")
 
-    os.environ['MPLCONFIGDIR'] = output_folder + "/plot_runtime"
-    print(f"Setting plotting temp folder to: {os.environ['MPLCONFIGDIR']}")
+
     ### Process MMSeqs output for clusters
     mmseqs_output_file = output_folder + '/filtered_proteins.mmseqs.out'
     df_of_bad_genes = convert_mmseqs_output(mmseqs_output_file,output_folder)
@@ -103,9 +104,16 @@ def run_pipeline(fasta_path, gff_path, output_folder, database_path, mmseqs_path
 
     ### Extract incorrect genes to fasta to make my life easier
     list_of_bad_genes = df_of_bad_genes['query'].unique().tolist()
-    output_incorrect_fasta_file = output_folder + '/incorrect_protein_sequences.fasta'
+    output_incorrect_fasta_file = output_folder + '/potential_incorrect_protein_sequences.fasta'
     write_protein_sequences_to_fasta(CDS_df_with_proteins[CDS_df_with_proteins['ID'].isin(list_of_bad_genes)], output_incorrect_fasta_file)
-    print(f"Protein sequences written to {output_incorrect_fasta_file}")
+    print(f"Potentially incorrect protein sequences written to {output_incorrect_fasta_file}")
+
+    ### Get all relevant hits for incorrect genes to feed into re-annotation:
+    run_mmseqs(output_incorrect_fasta_file, database_path, output_folder, mmseqs_path, threads, mmseqs_params, include_seq=True)
+    incorrect_database_hits_file = output_folder + "/potential_incorrect_protein_sequences.Database_hits.out"
+    output_incorrect_fasta_results= output_folder + "/potential_incorrect_protein_sequences.Database_hits.fasta"
+    write_protein_sequences_to_fasta_from_mmseqs(incorrect_database_hits_file, output_incorrect_fasta_results)
+    print(f"Correct Database hits for incorrect protein sequences written to {output_incorrect_fasta_results}")
 
 def main():
     parser = argparse.ArgumentParser(description='Process a genome and annotation file and try and identify mis-annotated genes.')

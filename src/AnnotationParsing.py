@@ -96,3 +96,15 @@ def write_protein_sequences_to_fasta(CDS_df, output_file):
     with open(output_file, 'w') as output_handle:
         SeqIO.write(records, output_handle, 'fasta')
 
+def write_protein_sequences_to_fasta_from_mmseqs(mmseqs_file, output_file):
+    mmseqs_df = pd.read_csv(mmseqs_file, sep ='\t')
+    records = []
+    for index, row in mmseqs_df.iterrows():
+        header = row['target'].replace('cds-', '')
+        gene_id = row['query']
+        description = f"geneID={gene_id} organism={row['taxname']}"
+        sequence = row['tseq']
+        record = SeqRecord(Seq(sequence), id=header, description=description)
+        records.append(record)
+    with open(output_file, 'w') as output_handle:
+        SeqIO.write(records, output_handle, 'fasta')
