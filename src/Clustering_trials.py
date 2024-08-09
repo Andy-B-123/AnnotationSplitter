@@ -111,11 +111,9 @@ def create_plot(df, output_dir, output_filepath):
         ylab("Target hit position")
     )
     
-    # Save the plot to the specified file path
-    full_output_path = os.path.join(output_dir, output_filepath)
-    plot.save(filename=full_output_path, height=12, width=12, verbose = False)
+    plot.save(filename=output_filepath, height=12, width=12, verbose = False)
     
-    print(f"Plot saved to {full_output_path}")
+    print(f"Plot saved to {output_filepath}")
 
 def plot_query_counts_histogram(df):
     """
