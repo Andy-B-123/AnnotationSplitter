@@ -119,7 +119,7 @@ def run_mmseqs(protein_fasta_file, database_path, output_directory, mmseqs_path,
     mmseqs_params_input_list = mmseqs_params_input.split()
     output_file = output_directory + "/filtered_proteins.mmseqs.out"
     if include_seq == True:
-        output_file = output_directory + "/incorrect_protein_sequences.Database_hits.out"
+        output_file = output_directory + "/potential_incorrect_protein_sequences.Database_hits.out"
     tmp_dir = output_directory + "/filtered_proteins.mmseqs.tmp"
 
     command = [
