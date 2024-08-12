@@ -115,6 +115,8 @@ def run_pipeline(fasta_path, gff_path, output_folder, database_path, mmseqs_path
     write_protein_sequences_to_fasta_from_mmseqs(incorrect_database_hits_file, output_incorrect_fasta_results)
     print(f"Correct Database hits for incorrect protein sequences written to {output_incorrect_fasta_results}")
 
+    print("Complete! Enjoy.")
+
 def main():
     parser = argparse.ArgumentParser(description='Process a genome and annotation file and try and identify mis-annotated genes.')
     parser.add_argument('--fasta_path', type=str, required=True, help='Path to the FASTA file')

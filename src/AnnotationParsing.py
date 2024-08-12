@@ -87,7 +87,10 @@ def write_protein_sequences_to_fasta(CDS_df, output_file):
     records = []
     for index, row in CDS_df.iterrows():
         header = row['ID'].replace('cds-', '')
-        gene_id = row['gene']
+        if row['gene']:
+            gene_id = row['gene']
+        else:
+            gene_id = "NotAvailable"
         transcript_id = row['Parent'].replace('rna-', '')
         description = f"geneID={gene_id} transcriptID={transcript_id}"
         sequence = row['protein_sequence']
