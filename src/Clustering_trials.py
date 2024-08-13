@@ -13,6 +13,7 @@ import os
 from plotnine import *
 from matplotlib import cm
 from pathlib import Path
+from openGenbankSites import *
 
 
 def split_by_row_count(data):
@@ -263,8 +264,8 @@ def calculate_overlap_percentage(df):
     df['overlap_percentage'] = overlap_percentages
     return df
 
-#input_mmseqs_filepath = r"U:\\AnnotationCheckerWithStructure\\Development\\Redux2.ESF\\filtered_proteins.mmseqs.out"
-#output_dir=r"U:\\AnnotationCheckerWithStructure\\Development\\Redux2.ESF\\new_plots"
+#input_mmseqs_filepath = r"U:\\AnnotationCheckerWithStructure\\Development\\Redux4.UncharacterisedOnly\\filtered_proteins.mmseqs.out"
+#output_dir=r"U:\\AnnotationCheckerWithStructure\\Development\\Redux4.UncharacterisedOnly"
 #chimerics_df = convert_mmseqs_output(input_mmseqs_file, r"U:\\AnnotationCheckerWithStructure\\Development\\check_other_organisms\\results")
 #chimerics_df.to_csv(r"U:\\AnnotationCheckerWithStructure\\Development\\check_other_organisms\\results\\ESF2_results.tsv", sep ='\t')
 def convert_mmseqs_output(input_mmseqs_filepath, output_dir):
@@ -282,6 +283,7 @@ def convert_mmseqs_output(input_mmseqs_filepath, output_dir):
     total_number_of_genes_with_hits = input_mmseqs_full_results['query'].nunique()
     print(f"Total number of genes with hits in MMSeqs output: {total_number_of_genes_with_hits}" )
     print("Processing hits to remove redundant hits...")
+
     collapsed_data = collapse_segments_initial(input_mmseqs_full_results, collapse_direction='left')
     #plot_query_counts_histogram(collapsed_data)
     #plot_faceted_segments(collapsed_data)
@@ -361,8 +363,13 @@ def convert_mmseqs_output(input_mmseqs_filepath, output_dir):
     create_plot(four_or_more_rows_df_all,output_dir,f'{output_dir}/{basename}.Chimerics-4mer.png')
 
     filtered_genes_overlap_high_confidence.to_csv(f'{output_dir}/{basename}.finalResults.tsv', sep ='\t')
+    ### Make a nice easy clickable link to each hit:
+    create_hyperlinks_file(f'{output_dir}/{basename}.finalResults.tsv',f'{output_dir}/{basename}.finalResults.html')
 
     return filtered_genes_overlap_high_confidence
+
+
+
 
 #input_mmseqs_file = r"U:\\AnnotationCheckerWithStructure\\Development\\check_other_organisms\\ESF.mmseqs.out"
 #chimerics_df = convert_mmseqs_output(input_mmseqs_file, r"U:\\AnnotationCheckerWithStructure\\Development\\check_other_organisms\\results")
