@@ -17,6 +17,6 @@ def create_hyperlinks_file(file_path, output_file):
     print(f"Hyperlinks file created: {output_file}")
 
 # Specify the path to your file containing protein sequences and the output folder
-file_path = r"U:\\AnnotationCheckerWithStructure\\Development\\Redux4.UncharacterisedOnly\\filtered_proteins.mmseqs.out.finalResults.tsv"
-output_folder = r"U:\\AnnotationCheckerWithStructure\\Development\\Redux4.UncharacterisedOnly\\filtered_proteins.mmseqs.out.finalResults.links.html"
-create_hyperlinks_file(file_path, output_folder)
+#file_path = r"U:\\AnnotationCheckerWithStructure\\Development\\Redux4.UncharacterisedOnly\\filtered_proteins.mmseqs.out.finalResults.tsv"
+#output_folder = r"U:\\AnnotationCheckerWithStructure\\Development\\Redux4.UncharacterisedOnly\\filtered_proteins.mmseqs.out.finalResults.links.html"
+#create_hyperlinks_file(file_path, output_folder)
