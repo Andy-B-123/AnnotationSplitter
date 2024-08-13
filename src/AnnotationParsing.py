@@ -19,9 +19,15 @@ def extract_gene_id(attributes):
 def reverse_complement(sequence):
     complement = {
         'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C', 'N': 'N',
-        'a': 't', 't': 'a', 'c': 'g', 'g': 'c', 'n': 'n'
+        'a': 't', 't': 'a', 'c': 'g', 'g': 'c', 'n': 'n',
+        'R': 'Y', 'Y': 'R', 'S': 'S', 'W': 'W', 'K': 'M', 'M': 'K', 
+        'B': 'V', 'D': 'H', 'H': 'D', 'V': 'B', '-': '-', 
+        'r': 'y', 'y': 'r', 's': 's', 'w': 'w', 'k': 'm', 'm': 'k', 
+        'b': 'v', 'd': 'h', 'h': 'd', 'v': 'b'
     }
-    return ''.join(complement[base] for base in reversed(sequence))
+    
+    return ''.join(complement.get(base, base) for base in reversed(sequence))
+
 
 def extract_dna_sequences(CDS_df, fasta_file):
     fasta = Fasta(fasta_file)
