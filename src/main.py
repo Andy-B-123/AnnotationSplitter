@@ -142,8 +142,6 @@ def run_pipeline(fasta_path, gff_path, output_folder, database_path, mmseqs_path
 
     ### Process MMSeqs output for clusters
     mmseqs_output_file = output_folder + '/filtered_proteins.mmseqs.out'
-    output_folder = r"U:\\AnnotationCheckerWithStructure\\Development\\Redux4.Finch"
-    df_of_bad_genes = pd.read_csv(r"U:\\AnnotationCheckerWithStructure\\Development\\Redux4.Finch\\filtered_proteins.mmseqs.out.finalResults.tsv", sep ='\t')
     df_of_bad_genes = convert_mmseqs_output(mmseqs_output_file,output_folder)
     if df_of_bad_genes.empty:
         print("No hits! Exiting...")
