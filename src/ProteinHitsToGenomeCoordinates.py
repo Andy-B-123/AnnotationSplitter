@@ -23,7 +23,6 @@ def bits_to_rgb(bits, min_bits, max_bits):
 # Function to extract nucleotide positions based on qstart and qend
 def extract_nucleotide_positions(row):
     nucleotide_to_aa_mapping = row['nucleotide_to_aa_mapping']
-     
     # Check strand:
     if row['strand'] == "+":
         # Get nucleotide positions for qstart and qend amino acids
@@ -52,11 +51,10 @@ def process_mmseqs_to_genome(mmseqs_output_file,bad_genes_df, annotation_df,outp
     ### Filter to just keep rows where 'query' is in the list of bad_genes_df
     list_of_bad_genes = bad_genes_df['query'].unique().tolist()
     mmseqs_dataframe = mmseqs_dataframe[mmseqs_dataframe['query'].isin(list_of_bad_genes)]
-    
     ### Add 'parent' information for each hit:
     mmseqs_dataframe
-    slim_df_metadata = annotation_df[['ID', 'strand','seq_id','Parent','nucleotide_to_aa_mapping']]
-    mmseqs_dataframe_meta = pd.merge(mmseqs_dataframe, slim_df_metadata, left_on='query', right_on='ID', how='left')
+    slim_df_metadata = annotation_df[['protein_id', 'strand','seq_id','Parent','nucleotide_to_aa_mapping']]
+    mmseqs_dataframe_meta = pd.merge(mmseqs_dataframe, slim_df_metadata, left_on='query', right_on='protein_id', how='left')
 
     # Apply the function to each row and create new columns
     mmseqs_dataframe_meta[['genome_start', 'genome_end', 'exon_start', 'exon_end']] = mmseqs_dataframe_meta.apply(extract_nucleotide_positions, axis=1)
@@ -80,3 +78,9 @@ def process_mmseqs_to_genome(mmseqs_output_file,bad_genes_df, annotation_df,outp
     mmseqs_dataframe_meta_sort.to_csv(output_file, sep='\t', columns=columns_to_write, header=False, index=False)
 
     print(f"Data written to {output_file}")
+
+#mmseqs_output_file = output_folder + '/filtered_proteins.mmseqs.out'
+#bad_genes_df = pd.read_csv(r"U:\\AnnotationCheckerWithStructure\\Development\\Redux4.Finch\\filtered_proteins.mmseqs.out.finalResults.tsv", sep ='\t')
+
+#output_directory = r"U:\\AnnotationCheckerWithStructure\\Development\\Redux4.Finch\\"
+#process_mmseqs_to_genome(mmseqs_output_file, bad_genes_df, CDS_df_with_proteins,output_directory)

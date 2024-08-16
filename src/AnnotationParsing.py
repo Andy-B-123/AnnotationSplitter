@@ -47,9 +47,13 @@ def extract_dna_sequences(CDS_df, fasta_file):
     return CDS_df
 
 def translate_to_protein(CDS_df):
+    CDS_df['attributes'] = CDS_df['attributes'].fillna("unknown")
     def get_protein_sequence(row):
         dna_sequence = row['dna_sequence']
         protein_metadata = row['attributes']
+        if isinstance(protein_metadata, float):
+            print(f"protein_metadata is a float for row: {row.name}, value: {protein_metadata}")
+            print(protein_metadata)
         is_partial = len(dna_sequence) % 3 != 0
         if is_partial or "partial=true" in protein_metadata:
             trimmed_sequence = dna_sequence[:-(len(dna_sequence) % 3)]
@@ -91,15 +95,15 @@ def map_nucleotides_to_amino_acids(CDS_spans, strand='+'):
 
 def write_protein_sequences_to_fasta(CDS_df, output_file):
     records = []
-    gene_column_exists = 'gene' in CDS_df.columns
+    gene_column_exists = 'ID' in CDS_df.columns
 
     for index, row in CDS_df.iterrows():
-        header = row['ID'].replace('cds-', '')
-        if gene_column_exists and row['gene']:
-            gene_id = row['gene']
+        header = row['protein_id']
+        if gene_column_exists and row['ID']:
+            gene_id = row['ID'].replace("gene:","")
         else:
             gene_id = "NotAvailable"
-        transcript_id = row['Parent'].replace('rna-', '')
+        transcript_id = row['Parent_cds'].replace('rna-', '').replace("transcript:","")
         description = f"geneID={gene_id} transcriptID={transcript_id}"
         sequence = row['protein_sequence']
         record = SeqRecord(Seq(sequence), id=header, description=description)

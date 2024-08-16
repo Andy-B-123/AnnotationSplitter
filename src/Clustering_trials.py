@@ -13,8 +13,22 @@ import os
 from plotnine import *
 from matplotlib import cm
 from pathlib import Path
-from openGenbankSites import *
 
+
+def create_hyperlinks_file(file_path, output_file):
+    results_df = pd.read_csv(file_path, sep = '\t')
+
+    base_url = "https://www.ncbi.nlm.nih.gov/gene/?term="
+    
+    with open(output_file, 'w') as f:
+        f.write('<html><body>\n')
+        for sequence in results_df['query'].unique():
+            sequence = sequence.strip()  # Remove any surrounding whitespace or newlines
+            if sequence:  # Ensure the sequence is not empty
+                url = base_url + sequence
+                f.write(f'<a href="{url}">{sequence}</a><br>\n')
+        f.write('</body></html>\n')
+    print(f"Hyperlinks file created: {output_file}")
 
 def split_by_row_count(data):
     # Count the number of rows per gene
@@ -264,8 +278,8 @@ def calculate_overlap_percentage(df):
     df['overlap_percentage'] = overlap_percentages
     return df
 
-#input_mmseqs_filepath = r"U:\\AnnotationCheckerWithStructure\\Development\\Redux4.UncharacterisedOnly\\filtered_proteins.mmseqs.out"
-#output_dir=r"U:\\AnnotationCheckerWithStructure\\Development\\Redux4.UncharacterisedOnly"
+#input_mmseqs_filepath = r"U:\\AnnotationCheckerWithStructure\\Development\\Redux4.Finch\\filtered_proteins.mmseqs.out"
+#output_dir=r"U:\\AnnotationCheckerWithStructure\\Development\\Redux4.Finch"
 #chimerics_df = convert_mmseqs_output(input_mmseqs_file, r"U:\\AnnotationCheckerWithStructure\\Development\\check_other_organisms\\results")
 #chimerics_df.to_csv(r"U:\\AnnotationCheckerWithStructure\\Development\\check_other_organisms\\results\\ESF2_results.tsv", sep ='\t')
 def convert_mmseqs_output(input_mmseqs_filepath, output_dir):
@@ -367,9 +381,6 @@ def convert_mmseqs_output(input_mmseqs_filepath, output_dir):
     create_hyperlinks_file(f'{output_dir}/{basename}.finalResults.tsv',f'{output_dir}/{basename}.finalResults.html')
 
     return filtered_genes_overlap_high_confidence
-
-
-
 
 #input_mmseqs_file = r"U:\\AnnotationCheckerWithStructure\\Development\\check_other_organisms\\ESF.mmseqs.out"
 #chimerics_df = convert_mmseqs_output(input_mmseqs_file, r"U:\\AnnotationCheckerWithStructure\\Development\\check_other_organisms\\results")
