@@ -96,14 +96,17 @@ def map_nucleotides_to_amino_acids(CDS_spans, strand='+'):
 def write_protein_sequences_to_fasta(CDS_df, output_file):
     records = []
     gene_column_exists = 'ID' in CDS_df.columns
-
+    parent_cds_column_exists = 'Parent_cds' in CDS_df.columns
     for index, row in CDS_df.iterrows():
         header = row['protein_id']
         if gene_column_exists and row['ID']:
-            gene_id = row['ID'].replace("gene:","")
+            gene_id = row['ID'].replace("gene:", "")
         else:
             gene_id = "NotAvailable"
-        transcript_id = row['Parent_cds'].replace('rna-', '').replace("transcript:","")
+        if parent_cds_column_exists:
+            transcript_id = row['Parent_cds'].replace('rna-', '').replace("transcript:", "")
+        else:
+            transcript_id = "NotAvailable"
         description = f"geneID={gene_id} transcriptID={transcript_id}"
         sequence = row['protein_sequence']
         record = SeqRecord(Seq(sequence), id=header, description=description)
