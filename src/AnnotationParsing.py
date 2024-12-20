@@ -1,20 +1,72 @@
+import argparse
 import os
-import pandas as pd
+import subprocess
 import gffpandas.gffpandas as gffpd
-from pyfaidx import Fasta
+import warnings
+from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
-from Bio import SeqIO
+import pandas as pd
+from pyfaidx import Fasta
+from icecream import ic
 
-def load_gff(gff_path):
-    annotation = gffpd.read_gff3(gff_path)
-    return annotation
+pd.set_option('display.max_columns', None)
 
-def extract_gene_id(attributes):
-    for attribute in attributes.split(';'):
-        if attribute.startswith('Parent='):
-            return attribute.split('=')[1]
-    return None
+def summarize_annotations(gff_file, label):
+    gff_db = gffpd.read_gff3(gff_file)
+
+    # Suppress specific FutureWarning
+    warnings.filterwarnings("ignore", category=FutureWarning, module='gffpandas')
+    genes_df_to_columns = gff_db.filter_feature_of_type(['gene']).attributes_to_columns()
+
+    trans_df_to_columns = gff_db.filter_feature_of_type(['transcript']).attributes_to_columns()
+    mrna_df_to_columns = gff_db.filter_feature_of_type(['mRNA']).attributes_to_columns()
+
+    # Check the number of records in each
+    trans_records = len(trans_df_to_columns)
+    mrna_records = len(mrna_df_to_columns)
+
+    if trans_records > 0 and mrna_records > 0:
+        if trans_records > mrna_records:
+            ic(f"Transcript has more records: {trans_records} > {mrna_records}")
+        else:
+            ic(f"mRNA has more records: {mrna_records} > {trans_records}")
+            trans_df_to_columns = mrna_df_to_columns
+    elif trans_records > 0:
+        ic(f"Only transcript records present, count: {trans_records}")
+    elif mrna_records > 0:
+        ic(f"Only mRNA records present, count: {mrna_records}")
+        trans_df_to_columns = mrna_df_to_columns
+    else:
+        ic("No transcript or mRNA records found.")
+
+    if label == "Reference":
+        column_name_list = genes_df_to_columns.columns.tolist()
+        biotype_index, biotype_column, protein_coding_df = None, None, None
+        for index, column_header in enumerate(column_name_list):
+            if 'biotype' in column_header:
+                biotype_index = index
+                biotype_column = column_header
+        if biotype_index == None:
+            print("Hmmm no biotype present in attributes of 'genes', going to assume all are protein coding!")
+            protein_coding_df = genes_df_to_columns.reset_index(drop=True)
+        else:
+            protein_coding_df = genes_df_to_columns[genes_df_to_columns[biotype_column] == 'protein_coding'].reset_index(drop=True)
+        protein_coding_df_trans = trans_df_to_columns[trans_df_to_columns['Parent'].isin(protein_coding_df['ID'])]
+        print(f'Number of protein coding genes in {label} annotation: {len(protein_coding_df)}')
+        print(f'Number of transcripts in annotation: {len(protein_coding_df_trans)}')
+        print(f'Average number transcripts per gene: {round(((len(protein_coding_df_trans))/(len(protein_coding_df))),2)}')
+    elif label == "Helixer":
+        print("Helixer only outputs single, longest isoform per gene")
+        protein_coding_df = genes_df_to_columns.reset_index(drop=True)
+        protein_coding_df_trans = trans_df_to_columns[trans_df_to_columns['Parent'].isin(protein_coding_df['ID'])]
+        print(f'Number of protein coding genes in {label} annotation: {len(protein_coding_df)}')
+        print(f'Number of transcripts in annotation: {len(protein_coding_df_trans)}')
+        print(f'Average number transcripts per gene: {round(((len(protein_coding_df_trans))/(len(protein_coding_df))),2)}')
+    else:
+        print("Something very wrong, neither Helixer nor Reference provided...")
+    print("")
+    return gff_db, protein_coding_df, protein_coding_df_trans
 
 def reverse_complement(sequence):
     complement = {
@@ -27,7 +79,6 @@ def reverse_complement(sequence):
     }
     
     return ''.join(complement.get(base, base) for base in reversed(sequence))
-
 
 def extract_dna_sequences(CDS_df, fasta_file):
     fasta = Fasta(fasta_file)
@@ -66,63 +117,56 @@ def translate_to_protein(CDS_df):
         lambda row: pd.Series(get_protein_sequence(row)), axis=1)
     return CDS_df
 
-def map_nucleotides_to_amino_acids(CDS_spans, strand='+'):
-    # Initialize the mapping dictionary
-    nucleotide_to_aa_exon = {}
-    nucleotide_index = 0
-
-    # Adjust the order of CDS spans based on the strand
-    if strand == '-':
-        CDS_spans = [(end, start) for start, end in CDS_spans[::-1]]
-    for exon_number, (start, end) in enumerate(CDS_spans, start=1):
-        if strand == '+':
-            range_nucleotides = range(start, end + 1)
-        else:  # strand == '-'
-            range_nucleotides = range(start, end - 1, -1)
-        for nucleotide in range_nucleotides:
-            # Calculate the corresponding amino acid position
-            amino_acid_position = nucleotide_index // 3 + 1
-            nucleotide_to_aa_exon[nucleotide] = (amino_acid_position, exon_number)
-            nucleotide_index += 1
-
-    # Create reverse mapping for amino acid positions to nucleotide positions and exon numbers
-    reverse_mapping = {}
-    for nucleotide, (amino_acid_pos, exon_num) in nucleotide_to_aa_exon.items():
-        if amino_acid_pos not in reverse_mapping:
-            reverse_mapping[amino_acid_pos] = []
-        reverse_mapping[amino_acid_pos].append((nucleotide, exon_num))
-    return reverse_mapping
+def clean_cds_id(id_string):
+    # Split the string at the last occurrence of ".CDS"
+    cleaned_id = id_string.rsplit(".CDS", 1)[0] + ".CDS"
+    return cleaned_id
 
 def write_protein_sequences_to_fasta(CDS_df, output_file):
     records = []
-    gene_column_exists = 'ID' in CDS_df.columns
-    parent_cds_column_exists = 'Parent_cds' in CDS_df.columns
     for index, row in CDS_df.iterrows():
-        header = row['protein_id']
-        if gene_column_exists and row['ID']:
-            gene_id = row['ID'].replace("gene:", "")
-        else:
-            gene_id = "NotAvailable"
-        if parent_cds_column_exists:
-            transcript_id = row['Parent_cds'].replace('rna-', '').replace("transcript:", "")
-        else:
-            transcript_id = "NotAvailable"
-        description = f"geneID={gene_id} transcriptID={transcript_id}"
+        header = row['Parent']
+        transcript_id = row['ID'].replace("cds-", "").replace("transcript:", "")
+        description = f"transcriptID={transcript_id}"
         sequence = row['protein_sequence']
         record = SeqRecord(Seq(sequence), id=header, description=description)
         records.append(record)
     with open(output_file, 'w') as output_handle:
         SeqIO.write(records, output_handle, 'fasta')
 
-def write_protein_sequences_to_fasta_from_mmseqs(mmseqs_file, output_file):
-    mmseqs_df = pd.read_csv(mmseqs_file, sep ='\t')
-    records = []
-    for index, row in mmseqs_df.iterrows():
-        header = row['target'].replace('cds-', '')
-        gene_id = row['query']
-        description = f"geneID={gene_id} organism={row['taxname']}"
-        sequence = row['tseq']
-        record = SeqRecord(Seq(sequence), id=header, description=description)
-        records.append(record)
-    with open(output_file, 'w') as output_handle:
-        SeqIO.write(records, output_handle, 'fasta')
+def extract_protein_sequences(annot_db, annot_db_trans, fasta_file, output_fasta_path):
+    ### Processing to get longest isoform for each gene, redudant for Helixer
+    print("Working on getting the longest isoform for each gene from the annotation file.")
+    transcript_df = annot_db_trans.copy()
+    transcript_df['length'] = transcript_df['end'] - transcript_df['start']
+    largest_isoforms = transcript_df.loc[transcript_df.groupby('Parent')['length'].idxmax()]
+    largest_isoforms = largest_isoforms[['Parent', 'ID', 'seq_id', 'start', 'end', 'length']].reset_index(drop = True)
+
+    ### Extract the DNA and protein sequences from the annotation with the fasta file
+    print("Get the protein sequences for each isoform.")
+    CDS_df = annot_db.filter_feature_of_type(['CDS']).attributes_to_columns()
+    filtered_CDS_df = CDS_df[CDS_df['Parent'].isin(largest_isoforms['ID'])].reset_index(drop = True)
+    if "helixer_proteins.fasta" in output_fasta_path:
+        filtered_CDS_df["ID"] = filtered_CDS_df["ID"].apply(clean_cds_id)
+        filtered_CDS_df["attributes"] = filtered_CDS_df["attributes"].apply(clean_cds_id)
+    filtered_CDS_df_data = filtered_CDS_df.iloc[:, 8:].drop_duplicates()
+    filtered_CDS_df['seq_id'] = filtered_CDS_df['seq_id'].astype(str)
+
+    # Assuming 'start' and 'end' are columns in the DataFrame
+    grouped = filtered_CDS_df.sort_values(by='start').groupby(['Parent', 'strand', 'seq_id']).apply(
+    lambda x: pd.Series({
+        'spans': list(zip(x['start'] - 1, x['end']))
+    }), include_groups=False
+    ).reset_index()
+
+    """    grouped = filtered_CDS_df.sort_values(by='start').groupby(['Parent','strand', 'seq_id']).apply(
+        lambda x: pd.Series({
+            'spans': [(row['start']-1, (row['end'])) for idx, row in x.iterrows()]
+        })
+    ,include_groups=False).reset_index()
+    """
+    merged_df = pd.merge(grouped, filtered_CDS_df_data, on='Parent', how='left')
+    CDS_df_with_sequences = extract_dna_sequences(merged_df, fasta_file)
+    CDS_df_with_proteins = translate_to_protein(CDS_df_with_sequences)
+    write_protein_sequences_to_fasta(CDS_df_with_proteins, output_fasta_path)
+
