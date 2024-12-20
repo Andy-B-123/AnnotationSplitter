@@ -170,3 +170,4 @@ def extract_protein_sequences(annot_db, annot_db_trans, fasta_file, output_fasta
     CDS_df_with_proteins = translate_to_protein(CDS_df_with_sequences)
     write_protein_sequences_to_fasta(CDS_df_with_proteins, output_fasta_path)
 
+
