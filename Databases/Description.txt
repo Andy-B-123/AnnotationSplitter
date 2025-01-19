@@ -1,13 +1,3 @@
-Databases are for the three main groups currently supported by Helixer.
+# Download the relevant databases from Figshare
 
-  
-SwissProt filtered database  Helixer matching taxonomic model 
-Protostomia  Invertebrates
-Deuterostomia  Vertebrates
-Plants  Plants
-
-
- 
- 
- 
-
+<Download links>
