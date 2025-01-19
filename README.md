@@ -22,7 +22,7 @@ Ensure the following dependencies are installed:
 
 ### Clone the Repository
 ```bash
-git clone [https://github.com/<your_username>/AnnotationSplitter.git](https://github.com/Andy-B-123/AnnotationSplitter.git)
+git clone https://github.com/Andy-B-123/AnnotationSplitter.git
 cd AnnotationSplitter
 ```
 
