@@ -1,0 +1,13 @@
+Databases are for the three main groups currently supported by Helixer.
+
+  
+SwissProt filtered database  Helixer matching taxonomic model 
+Protostomia  Invertebrates
+Deuterostomia  Vertebrates
+Plants  Plants
+
+
+ 
+ 
+ 
+
