@@ -87,7 +87,6 @@ The program generates the following outputs:
 ```
 .
 ├── LICENSE.TXT
-├── program_binaries/
 ├── README.md
 ├── requirements.txt
 ├── setup.py
