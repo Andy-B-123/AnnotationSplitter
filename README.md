@@ -90,6 +90,7 @@ The program generates the following outputs:
 ├── README.md
 ├── requirements.txt
 ├── setup.py
+├── Databases/
 ├── src/
 │   ├── AnnotationParsing.py
 │   ├── MMSeqs_analysis.py
