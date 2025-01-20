@@ -26,6 +26,9 @@ git clone https://github.com/Andy-B-123/AnnotationSplitter.git
 cd AnnotationSplitter
 ```
 
+### Databases
+Please download the relevant database for your organism from https://doi.org/10.6084/m9.figshare.28236284
+
 ## Usage
 
 ### Command-Line Arguments
