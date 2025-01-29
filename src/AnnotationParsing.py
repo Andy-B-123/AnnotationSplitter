@@ -170,4 +170,23 @@ def extract_protein_sequences(annot_db, annot_db_trans, fasta_file, output_fasta
     CDS_df_with_proteins = translate_to_protein(CDS_df_with_sequences)
     write_protein_sequences_to_fasta(CDS_df_with_proteins, output_fasta_path)
 
+def parse_vcf_bed_files(file_path):
+    """
+    Parses VCF or BED files and returns a DataFrame with the relevant information.
+    """
+    if file_path.endswith('.vcf'):
+        return pd.read_csv(file_path, comment='#', sep='\t', header=None, names=['seq_id', 'pos', 'id', 'ref', 'alt', 'qual', 'filter', 'info'])
+    elif file_path.endswith('.bed'):
+        return pd.read_csv(file_path, sep='\t', header=None, names=['seq_id', 'start', 'end', 'name', 'score', 'strand'])
+    else:
+        raise ValueError("Unsupported file format. Please provide a VCF or BED file.")
 
+def filter_snps(snp_df, gene_coordinates):
+    """
+    Filters SNPs based on gene coordinates.
+    """
+    filtered_snps = []
+    for _, gene in gene_coordinates.iterrows():
+        gene_snps = snp_df[(snp_df['seq_id'] == gene['seq_id']) & (snp_df['pos'].between(gene['start'], gene['end']))]
+        filtered_snps.append(gene_snps)
+    return pd.concat(filtered_snps, ignore_index=True)
