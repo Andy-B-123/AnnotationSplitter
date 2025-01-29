@@ -8,6 +8,7 @@
 - Extract protein sequences from GFF and FASTA files.
 - Perform sequence similarity analysis using MMseqs2.
 - Generate summary tables and potential chimera reports.
+- Filter VCF and BED files to identify problematic SNPs in misannotated genes.
 
 ## Installation
 
@@ -37,6 +38,8 @@ python src/main.py [-h] reference_gff helixer_gff reference_fasta output_directo
                    --mmseqs_db MMSEQS_DB
                    [--mmseqs_path MMSEQS_PATH]
                    [--mmseqs_threads MMSEQS_THREADS]
+                   [--vcf_path VCF_PATH]
+                   [--bed_path BED_PATH]
 ```
 
 #### Positional Arguments
@@ -49,6 +52,8 @@ python src/main.py [-h] reference_gff helixer_gff reference_fasta output_directo
 - **--mmseqs_db**: Path to the MMseqs2 SwissProt database (required).
 - **--mmseqs_path**: Path to the MMseqs2 executable (default: uses system PATH).
 - **--mmseqs_threads**: Number of threads for MMseqs2 (default: 16).
+- **--vcf_path**: Path to the VCF file (optional).
+- **--bed_path**: Path to the BED file (optional).
 
 ### Example Command
 ```bash
@@ -58,7 +63,9 @@ python src/main.py \
     /path/to/reference.fasta \
     /output/directory \
     --mmseqs_db /path/to/mmseqs_db \
-    --mmseqs_threads 16
+    --mmseqs_threads 16 \
+    --vcf_path /path/to/snps.vcf \
+    --bed_path /path/to/snps.bed
 ```
 
 ## Output
@@ -81,6 +88,10 @@ The program generates the following outputs:
 - **reference_proteins.potential_chimeras.fasta**: FASTA sequences of potential chimeras in reference proteins.
 - **helixer_proteins.potential_chimeras.fasta**: FASTA sequences of potential chimeras in Helixer proteins.
 
+### VCF and BED Filtering
+- **problematic_snps.vcf**: Problematic SNPs identified in the VCF file.
+- **problematic_snps.bed**: Problematic SNPs identified in the BED file.
+
 ## Development
 
 ### Directory Structure
@@ -95,6 +106,7 @@ The program generates the following outputs:
 │   ├── AnnotationParsing.py
 │   ├── MMSeqs_analysis.py
 │   ├── program_runners.py
+│   ├── ProteinHitsToGenomeCoordinates.py
 │   └── main.py
 ```
 
@@ -103,6 +115,7 @@ The program generates the following outputs:
 - **AnnotationParsing.py**: Functions for parsing annotation data.
 - **program_runners.py**: Interfaces for running external programs (e.g., gffcompare).
 - **MMSeqs_analysis.py**: Functions for running and processing MMseqs2 analysis.
+- **ProteinHitsToGenomeCoordinates.py**: Functions for translating protein coordinates to genome coordinates and overlapping SNPs with genes.
 
 ## License
 This project is licensed under the terms of the license specified in `LICENSE.TXT`.

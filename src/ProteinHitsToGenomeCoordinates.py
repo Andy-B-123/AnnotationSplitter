@@ -79,8 +79,12 @@ def process_mmseqs_to_genome(mmseqs_output_file,bad_genes_df, annotation_df,outp
 
     print(f"Data written to {output_file}")
 
-#mmseqs_output_file = output_folder + '/filtered_proteins.mmseqs.out'
-#bad_genes_df = pd.read_csv(r"U:\\AnnotationCheckerWithStructure\\Development\\Redux4.Finch\\filtered_proteins.mmseqs.out.finalResults.tsv", sep ='\t')
-
-#output_directory = r"U:\\AnnotationCheckerWithStructure\\Development\\Redux4.Finch\\"
-#process_mmseqs_to_genome(mmseqs_output_file, bad_genes_df, CDS_df_with_proteins,output_directory)
+def overlap_snps_with_genes(snp_df, gene_coordinates):
+    """
+    Overlaps SNPs with gene coordinates and returns the problematic SNPs.
+    """
+    problematic_snps = []
+    for _, gene in gene_coordinates.iterrows():
+        gene_snps = snp_df[(snp_df['seq_id'] == gene['seq_id']) & (snp_df['pos'].between(gene['start'], gene['end']))]
+        problematic_snps.append(gene_snps)
+    return pd.concat(problematic_snps, ignore_index=True)

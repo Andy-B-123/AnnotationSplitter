@@ -7,7 +7,7 @@ from Bio import SeqIO
 from AnnotationParsing import *
 from program_runners import *
 from MMSeqs_analysis import *
-
+from ProteinHitsToGenomeCoordinates import overlap_snps_with_genes
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="GeneSplitter comparing reference annotations with Helixer generated annotations.")
@@ -18,6 +18,8 @@ def parse_arguments():
     parser.add_argument("--mmseqs_db", type=str, required=True, help="Path to the MMseqs2  SwissProt database")
     parser.add_argument("--mmseqs_path", type=str, default=None, help="Path to the MMseqs2 executable, defaults to being present in the system path if not provided.")
     parser.add_argument("--mmseqs_threads", type=str, default=16, help="Threads to use for mmseqs.")
+    parser.add_argument("--vcf_path", type=str, help="Path to the VCF file")
+    parser.add_argument("--bed_path", type=str, help="Path to the BED file")
     return parser.parse_args()
 
 def check_mmseqs_path(provided_path=None):
@@ -39,6 +41,21 @@ def check_mmseqs_path(provided_path=None):
         return mmseqs_path
     else:
         raise FileNotFoundError("'mmseqs' not found in system path. Please provide a valid path using --mmseqs_path.")
+
+def filter_vcf_bed_files(vcf_path, bed_path, fixed_genes_coordinates, output_directory):
+    if vcf_path:
+        vcf_snps = parse_vcf_bed_files(vcf_path)
+        problematic_snps_vcf = overlap_snps_with_genes(vcf_snps, fixed_genes_coordinates)
+        output_vcf_path = os.path.join(output_directory, "problematic_snps.vcf")
+        problematic_snps_vcf.to_csv(output_vcf_path, sep='\t', index=False)
+        print(f"Problematic SNPs in VCF file saved to {output_vcf_path}")
+
+    if bed_path:
+        bed_snps = parse_vcf_bed_files(bed_path)
+        problematic_snps_bed = overlap_snps_with_genes(bed_snps, fixed_genes_coordinates)
+        output_bed_path = os.path.join(output_directory, "problematic_snps.bed")
+        problematic_snps_bed.to_csv(output_bed_path, sep='\t', index=False)
+        print(f"Problematic SNPs in BED file saved to {output_bed_path}")
 
 def main():
     print("Starting process\n")
@@ -113,7 +130,11 @@ def main():
         for record in SeqIO.parse(helixer_protein_output, 'fasta'):
             if record.id in filtered_hits_summary_table_refseq['query'].tolist():
                 SeqIO.write(record, output_handle, 'fasta')
-    
+
+    # Filter VCF and BED files if provided
+    if args.vcf_path or args.bed_path:
+        fixed_genes_coordinates = filtered_hits_RefSeq[['seq_id', 'start', 'end']].drop_duplicates()
+        filter_vcf_bed_files(args.vcf_path, args.bed_path, fixed_genes_coordinates, args.output_directory)
 
 if __name__ == "__main__":
     main()
@@ -206,4 +227,10 @@ with open(helixer_protein_output_potentialChimeras, 'w') as output_handle:
     for record in SeqIO.parse(helixer_protein_output, 'fasta'):
         if record.id in filtered_hits_summary_table_refseq['query'].tolist():
             SeqIO.write(record, output_handle, 'fasta')
+
+# Filter VCF and BED files if provided
+if args.vcf_path or args.bed_path:
+    fixed_genes_coordinates = filtered_hits_RefSeq[['seq_id', 'start', 'end']].drop_duplicates()
+    filter_vcf_bed_files(args.vcf_path, args.bed_path, fixed_genes_coordinates, args.output_directory)
+
  """
