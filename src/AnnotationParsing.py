@@ -141,30 +141,30 @@ def extract_protein_sequences(annot_db, annot_db_trans, fasta_file, output_fasta
     transcript_df['length'] = transcript_df['end'] - transcript_df['start']
     largest_isoforms = transcript_df.loc[transcript_df.groupby('Parent')['length'].idxmax()]
     largest_isoforms = largest_isoforms[['Parent', 'ID', 'seq_id', 'start', 'end', 'length']].reset_index(drop = True)
-
+    
     ### Extract the DNA and protein sequences from the annotation with the fasta file
     print("Get the protein sequences for each isoform.")
     CDS_df = annot_db.filter_feature_of_type(['CDS']).attributes_to_columns()
     filtered_CDS_df = CDS_df[CDS_df['Parent'].isin(largest_isoforms['ID'])].reset_index(drop = True)
+    
     if "helixer_proteins.fasta" in output_fasta_path:
         filtered_CDS_df["ID"] = filtered_CDS_df["ID"].apply(clean_cds_id)
         filtered_CDS_df["attributes"] = filtered_CDS_df["attributes"].apply(clean_cds_id)
+    
     filtered_CDS_df_data = filtered_CDS_df.iloc[:, 8:].drop_duplicates()
     filtered_CDS_df['seq_id'] = filtered_CDS_df['seq_id'].astype(str)
-
-    # Assuming 'start' and 'end' are columns in the DataFrame
-    grouped = filtered_CDS_df.sort_values(by='start').groupby(['Parent', 'strand', 'seq_id']).apply(
-    lambda x: pd.Series({
-        'spans': list(zip(x['start'] - 1, x['end']))
-    }), include_groups=False
-    ).reset_index()
-
-    """    grouped = filtered_CDS_df.sort_values(by='start').groupby(['Parent','strand', 'seq_id']).apply(
-        lambda x: pd.Series({
-            'spans': [(row['start']-1, (row['end'])) for idx, row in x.iterrows()]
+    
+    # Modified groupby operation
+    def get_spans(group):
+        return pd.Series({
+            'spans': list(zip(group['start'] - 1, group['end']))
         })
-    ,include_groups=False).reset_index()
-    """
+
+    grouped = (filtered_CDS_df.sort_values(by='start')
+              .groupby(['Parent', 'strand', 'seq_id'])
+              .apply(get_spans)
+              .reset_index())
+    
     merged_df = pd.merge(grouped, filtered_CDS_df_data, on='Parent', how='left')
     CDS_df_with_sequences = extract_dna_sequences(merged_df, fasta_file)
     CDS_df_with_proteins = translate_to_protein(CDS_df_with_sequences)
