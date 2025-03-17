@@ -17,9 +17,10 @@ def process_mmseqs_data(gffcompare_base, reference_mmseqs_output, helixer_mmseqs
     SpodRefLongestCompareHelixer.columns = ["Query_transfrags", "Query_loci", "Reference_ID", "class", "Helixer"]
     filtered_df = SpodRefLongestCompareHelixer[SpodRefLongestCompareHelixer["Reference_ID"] != "-"]
     grouped_df = filtered_df.groupby(["Reference_ID", "class"]).size().reset_index(name='number_cluster')
-    totals = grouped_df.groupby("Reference_ID", group_keys=False).apply(
-        lambda x: x.assign(total_number=x['number_cluster'].sum())
-    ,include_groups=False).reset_index(drop=True)
+    # Fixed version
+    totals = (grouped_df.groupby("Reference_ID", group_keys=False)
+          .apply(lambda x: x.assign(total_number=x['number_cluster'].sum()))
+          .reset_index(drop=True))
     contingency_table = pd.crosstab(totals['total_number'], totals['class'])
     print("Distribution of gffcompare hits across Reference and Helixer annotations:")
     print(contingency_table)
